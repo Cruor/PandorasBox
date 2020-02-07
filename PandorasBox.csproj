@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4FC86D8F-33D5-46A5-B348-93F8D01A9311}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Celeste.Mod.PandorasBox</RootNamespace>
+    <AssemblyName>PandorasBox</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Celeste">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\Celeste.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FNA">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\FNA.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MMHOOK_Celeste">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\MMHOOK_Celeste.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NLua">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\NLua.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\YamlDotNet.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AirBubbles.cs" />
+    <Compile Include="CloneSpawner.cs" />
+    <Compile Include="Gate.cs" />
+    <Compile Include="Lamp.cs" />
+    <Compile Include="LaserDetectorActor.cs" />
+    <Compile Include="LaserNoteblock.cs" />
+    <Compile Include="LaserSensor.cs" />
+    <Compile Include="LaserValve.cs" />
+    <Compile Include="NoteHelper.cs" />
+    <Compile Include="PeekAQueue.cs" />
+    <Compile Include="CircularResortPlatform.cs" />
+    <Compile Include="ColoredBigWaterfall.cs" />
+    <Compile Include="DustSpriteColorController.cs" />
+    <Compile Include="Laserbeam.cs" />
+    <Compile Include="LaserHelper.cs" />
+    <Compile Include="LaserMirror.cs" />
+    <Compile Include="LaserWallSensor.cs" />
+    <Compile Include="LaserEmitter.cs" />
+    <Compile Include="Lever.cs" />
+    <Compile Include="PandorasBox.cs" />
+    <Compile Include="ColoredWater.cs" />
+    <Compile Include="ColorHelper.cs" />
+    <Compile Include="ColoredWaterfall.cs" />
+    <Compile Include="DrivableCar.cs" />
+    <Compile Include="DashToggleBlock.cs" />
+    <Compile Include="MarioShell.cs" />
+    <Compile Include="PandorasBoxMod.cs" />
+    <Compile Include="PlayerCloneHelper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TileGlitcher.cs" />
+    <Compile Include="TimeField.cs" />
+    <Compile Include="WaterDrowningController.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

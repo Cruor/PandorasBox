@@ -1,0 +1,13 @@
+/*
+
+*.zip
+*.pdb
+
+# files
+!*.cs
+!*.csproj
+!/.gitignore
+!/.gitmodules
+!/LICENSE
+!/README.md
+!/PandorasBox/

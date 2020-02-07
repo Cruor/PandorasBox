@@ -1,0 +1,38 @@
+﻿using Celeste;
+using Celeste.Mod;
+using Microsoft.Xna.Framework;
+using NLua;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using YamlDotNet.Serialization;
+
+namespace Celeste.Mod.PandorasBox
+{
+    public class PandorasBoxMod : EverestModule
+    {
+        public static PandorasBoxMod Instance;
+
+        public override Type SettingsType => null;
+
+        public PandorasBoxMod()
+        {
+            Instance = this;
+        }
+
+        public override void Load()
+        {
+            CloneSpawner.Load();
+            WaterDrowningController.Load();
+        }
+
+        public override void Unload()
+        {
+            CloneSpawner.Unload();
+            WaterDrowningController.Unload();
+        }
+    }
+}

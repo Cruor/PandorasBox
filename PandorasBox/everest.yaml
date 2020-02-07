@@ -1,0 +1,6 @@
+﻿- Name: PandorasBox
+  Version: 1.0.10
+  DLL: "PandorasBox.dll"
+  Dependencies:
+    - Name: Everest
+      Version: 1.1161.0

@@ -1,0 +1,131 @@
+# -- Entity and Trigger Tooltips -- 
+#    placements.entities.entityName.tooltips.attr=Tooltip
+#    placements.triggers.triggerName.tooltips.attr=Tooltip
+
+# -- Entities -- 
+
+# TimeField
+placements.entities.pandorasBox/timefield.tooltips.start=The speed multiplier set when entering the field or moving for "startTime" seconds inside.
+placements.entities.pandorasBox/timefield.tooltips.stop=The speed multiplier set when exiting the field or while standing still for "stopTime" seconds inside.
+placements.entities.pandorasBox/timefield.tooltips.stopTime=Time required to stand still to reach the "stop" speed multiplier.
+placements.entities.pandorasBox/timefield.tooltips.startTime=Time required to be moving to reach the "start" speed multiplier.
+placements.entities.pandorasBox/timefield.tooltips.animRate=The speed of the animation of the field.
+placements.entities.pandorasBox/timefield.tooltips.render=If the field should render at all.
+placements.entities.pandorasBox/timefield.tooltips.lingering=If the effect should last after exiting the field until a new lingering field is entered.
+placements.entities.pandorasBox/timefield.tooltips.color=The color of the particles.\nHex values can be used.
+
+# Shells
+placements.entities.pandorasBox/shell.tooltips.texture=What version of the shell should be used.
+placements.entities.pandorasBox/shell.tooltips.lights=If the shell should be a light source.
+placements.entities.pandorasBox/shell.tooltips.color=The color of the shell tinting\n"Color1,Color2,Color3" for color animations.
+placements.entities.pandorasBox/shell.tooltips.direction=The start direction of the shell\n-1: Left\n0: Stand still\n1: Right.
+placements.entities.pandorasBox/shell.tooltips.colorSpeed=How fast the colors cycles.
+
+# Dash Toggle Blocks
+placements.entities.pandorasBox/dashToggleBlock.tooltips.divisor=Divisor used for the counter looping
+placements.entities.pandorasBox/dashToggleBlock.tooltips.index=The index where the block is solid.\n"0,1" for multiple indices.
+
+# Colored Water
+placements.entities.pandorasBox/coloredWater.tooltips.color=The color of the water.\nHex values can be used.
+placements.entities.pandorasBox/coloredWater.tooltips.hasBottom=Determines whether or not the water has a bottom.
+
+# Colored Waterfall
+placements.entities.pandorasBox/coloredWaterfall.tooltips.color=The color of the waterfall.\nHex values can be used.
+
+# Colored Big Waterfall
+placements.entities.pandorasBox/coloredBigWaterfall.tooltips.color=The color of the waterfall.\nHex values can be used.
+placements.entities.pandorasBox/coloredBigWaterfall.tooltips.layer=Where the waterfall should render.\nFG is in the foreground.\nBG is in the background and parallaxes.
+
+# Intro Car
+placements.entities.pandorasBox/introCar.tooltips.acceleration=How fast the car accelerates.
+placements.entities.pandorasBox/introCar.tooltips.deceleration=How fast the car decelerates.
+placements.entities.pandorasBox/introCar.tooltips.maxSpeed=The highest speed the car can have.
+placements.entities.pandorasBox/introCar.tooltips.brokenDoor=If the door is broken and Madeline can not get out after entering.
+placements.entities.pandorasBox/introCar.tooltips.nitroAcceleration=How fast the car accelerates while using nitro.
+placements.entities.pandorasBox/introCar.tooltips.nitroMaxDuration=The maximum duration nitro can last without refilling it.
+placements.entities.pandorasBox/introCar.tooltips.nitroRegenMultiplier=How fast the nitro replenishes while not using it.
+placements.entities.pandorasBox/introCar.tooltips.facing=The start direction of the car.
+placements.entities.pandorasBox/introCar.tooltips.deceleration=How fast the car decelerates.
+
+# Pandora's Box
+placements.entities.pandorasBox/pandorasBox.tooltips.completeChapter=If opening the box should complete the chapter.
+placements.entities.pandorasBox/pandorasBox.tooltips.dialog=Custom dialog for the postcard.\nLeave empty for default dialogs.
+
+# Tile Glitcher
+placements.entities.pandorasBox/tileGlitcher.tooltips.rate=How long to wait between each glitching attempt.
+placements.entities.pandorasBox/tileGlitcher.tooltips.threshold=How likely a tile is to change itself.
+placements.entities.pandorasBox/tileGlitcher.tooltips.target=What tiles the glitcher should target.
+placements.entities.pandorasBox/tileGlitcher.tooltips.customFgTiles=What FG tiles glitcher should use, instead of all available.\nString of all chars, no seperator.\nGame will crash if the ID doesn't exist.
+placements.entities.pandorasBox/tileGlitcher.tooltips.customBgTiles=What BG tiles glitcher should use, instead of all available.\nString of all chars, no seperator.\nGame will crash if the ID doesn't exist.
+placements.entities.pandorasBox/tileGlitcher.tooltips.allowAir=If the glitcher can replace a tile with air. Ignored if custom tiles is set.
+placements.entities.pandorasBox/tileGlitcher.tooltips.transformAir=If the glitcher can replace air with other tiles.
+placements.entities.pandorasBox/tileGlitcher.tooltips.flag=Flag to activate the glitcher, leave empty to always enable.\nUse ',' to activate on any flag, for example "foo,bar,baz".
+
+# Dust Sprite Color Controller
+placements.entities.pandorasBox/dustSpriteColorController.tooltips.eyeColor=The eye color.\nHex values can be used.
+placements.entities.pandorasBox/dustSpriteColorController.tooltips.borderColor=Three colors for the border.\nSeperated by ',', example "Red,Blue,Green".\nHex values can be used.
+placements.entities.pandorasBox/dustSpriteColorController.tooltips.eyeTexture=The eye texture.
+
+# Circular Resort Platforms
+placements.entities.pandorasBox/circularResortPlatform.tooltips.speed=The rotating speed.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.texture=What texture to use for the platform.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.attachToSolid=If the platform should attach to solids.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.clockwise=If the platform should rotate clockwise.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.particles=If the platform should emit particles.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.renderRail=If the platform rail should render.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.lineEdgeColor=The rail edge color.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.lineFillColor=The rail fill color.
+
+# Lever
+placements.entities.pandorasBox/lever.tooltips.flag=The flag the lever sets/unsets.
+placements.entities.pandorasBox/lever.tooltips.active=The starting position of the lever.
+
+# Player Clone
+placements.entities.pandorasBox/playerClone.tooltips.flag=The flag to activate the player clone. Setting the flag spawns it, unsetting removes it.
+placements.entities.pandorasBox/playerClone.tooltips.mode=The visual apperance of the clone.\nInventory - Madeline with the same backpack status as current inventory.\nBackpack - Madeline with backpack.\nNoBackpack - Madeline without a backpack.\MadelineAsBadeline - Badeline.
+
+# Light Emmiter
+placements.entities.pandorasBox/laserEmitter.tooltips.flag=Flag to activate the emitter.
+placements.entities.pandorasBox/laserEmitter.tooltips.color=The color of the laser from the emitter.
+placements.entities.pandorasBox/laserEmitter.tooltips.direction=The direction the laser is emitted.
+placements.entities.pandorasBox/laserEmitter.tooltips.beamDuration=How long the laser lasts before disappearing.\n-1 means never.
+placements.entities.pandorasBox/laserEmitter.tooltips.inverted=If the flag behavior of the emitter is inverted.
+
+# Laser Note Block
+placements.entities.pandorasBox/laserNoteBlock.tooltips.atPlayer=If the sound should play at the player location, rather than at the noteblock.
+placements.entities.pandorasBox/laserNoteBlock.tooltips.pitch=MIDI pitch.\n69 = A4.
+placements.entities.pandorasBox/laserNoteBlock.tooltips.volume=Volume to play the note at.
+placements.entities.pandorasBox/laserNoteBlock.tooltips.sound=The sound to play.
+placements.entities.pandorasBox/laserNoteBlock.tooltips.direction=Where the opening for the laser is.
+
+# Laser Mirror
+placements.entities.pandorasBox/laserMirror.tooltips.opening=Which direcitons the mirror can reflect in.
+
+# Laser Sensor
+placements.entities.pandorasBox/laserSensor.tooltips.flag=Which flag the sensor sets when active.
+placements.entities.pandorasBox/laserSensor.tooltips.blockLight=Whether the sensor should block light from passing through or not.
+placements.entities.pandorasBox/laserSensor.tooltips.color=The required color to active the sensor.
+placements.entities.pandorasBox/laserSensor.tooltips.mode=The method of activating the sensor.\nContinous - Requires the light to stay on it for the flag to be set.\nHit Once - Sets the flag when it is hit, resets when the flag is unset from other sources.
+
+# Laser Valve
+placements.entities.pandorasBox/laserValve.tooltips.delay=How long the valve takes to let a laser through.
+placements.entities.pandorasBox/laserValve.tooltips.direction=Where the opening for the laser is.
+
+# Lamp
+placements.entities.pandorasBox/lamp.tooltips.flag=Flag to activate the lamp.
+placements.entities.pandorasBox/lamp.tooltips.baseColor=The color of the lamp base. Can be used to indicate what light is needed to open it.
+placements.entities.pandorasBox/lamp.tooltips.lightColor=The color of the actual light coming of the lamp.
+
+# Gate
+placements.entities.pandorasBox/gate.tooltips.flag=Flag to activate the gate.
+placements.entities.pandorasBox/gate.tooltips.inverted=If the flag behavior of the gate is inverted.
+placements.entities.pandorasBox/gate.tooltips.texture=The folder to look for gate texture in. Looks for gate*.png in the specified folder.\nBy default it points at "objects/pandorasBox/gate/", meaning it uses "objects/pandorasBox/gate/gate0.png" and so on.
+
+# Water Drowning Controoller
+placements.entities.pandorasBox/waterDrowningController.tooltips.maxDuration=How long it takes for Madeline to drown in water.
+placements.entities.pandorasBox/waterDrowningController.tooltips.mode=How the controller should operate.\nDiving - Only counts when Madeline is actually diving in the water.\nSwimming - Counts as long as Madeline is in water.
+
+# Air Bubbles
+placements.entities.pandorasBox/airBubbles.tooltips.oneUse=If the air bubble should only be usable once. Resets when room is reloaded or the player dies.
+
+# -- Triggers -- 
