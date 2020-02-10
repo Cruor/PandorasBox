@@ -20,10 +20,10 @@ namespace Celeste.Mod.PandorasBox
 
         private Water fakeWater;
 
-        public static FieldInfo fillColorField;
-        public static FieldInfo surfaceColorField;
-        public static FieldInfo rayTopColorField;
-        public static FieldInfo fillField;
+        public static FieldInfo fillColorField = typeof(Water).GetField("FillColor", BindingFlags.Static | BindingFlags.Public);
+        public static FieldInfo surfaceColorField = typeof(Water).GetField("SurfaceColor", BindingFlags.Static | BindingFlags.Public);
+        public static FieldInfo rayTopColorField = typeof(Water).GetField("RayTopColor", BindingFlags.Static | BindingFlags.Public);
+        public static FieldInfo fillField = typeof(Water).GetField("fill", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public ColoredWater(EntityData data, Vector2 offset) : base(data, offset)
         {
@@ -62,26 +62,11 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private static void cacheFieldInfo()
-        {
-            if (fillColorField == null || surfaceColorField == null || rayTopColorField == null || fillField == null)
-            {
-                var type = typeof(Water);
-
-                fillColorField = type.GetField("FillColor", BindingFlags.Static | BindingFlags.Public);
-                surfaceColorField = type.GetField("SurfaceColor", BindingFlags.Static | BindingFlags.Public);
-                rayTopColorField = type.GetField("RayTopColor", BindingFlags.Static | BindingFlags.Public);
-                fillField = type.GetField("fill", BindingFlags.Instance | BindingFlags.NonPublic);
-            }
-        }
-
         public override void Render()
         {
             Color origFill = Water.FillColor;
             Color origSurface = Water.SurfaceColor;
             Color origRayTop = Water.RayTopColor;
-
-            cacheFieldInfo();
 
             fillColorField.SetValue(null, fillColor);
             surfaceColorField.SetValue(null, surfaceColor);
@@ -102,8 +87,6 @@ namespace Celeste.Mod.PandorasBox
             Color origSurface = Water.SurfaceColor;
             Color origRayTop = Water.RayTopColor;
 
-            cacheFieldInfo();
-
             fillColorField.SetValue(null, fillColor);
             surfaceColorField.SetValue(null, surfaceColor);
             rayTopColorField.SetValue(null, rayTopColor);
@@ -118,8 +101,6 @@ namespace Celeste.Mod.PandorasBox
         public override void Added(Scene scene)
         {
             base.Added(scene);
-
-            cacheFieldInfo();
 
             (scene as Level).Add(fakeWater);
             fillField.SetValue(fakeWater, new Rectangle(0, 0, 0, 0));

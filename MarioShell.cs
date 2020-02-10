@@ -26,7 +26,7 @@ namespace Celeste.Mod.PandorasBox
         public String texture;
         public int id;
 
-        public MethodInfo springMethod;
+        public static MethodInfo springMethodInfo = typeof(Spring).GetMethod("BounceAnimate", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public Holdable Hold;
         public Scene scene;
@@ -77,7 +77,7 @@ namespace Celeste.Mod.PandorasBox
         {
             get
             {
-                return Scene.Tracker.GetEntities<MarioShell>().Cast<MarioShell>().Any(other => (other.id == this.id && this.Hold.IsHeld != other.Hold.IsHeld));
+                return Scene.Tracker.GetEntities<MarioShell>().Cast<MarioShell>().Any(other => (other.id == id && Hold.IsHeld != other.Hold.IsHeld));
             }
         }
 
@@ -97,7 +97,7 @@ namespace Celeste.Mod.PandorasBox
             colors = new List<Color>();
             timeAcc = 0;
 
-            bool lights = Boolean.Parse(data.Attr("lights", "false"));
+            bool lights = data.Bool("lights", false);
 
             texture = data.Attr("texture", "koopa");
 
@@ -105,69 +105,69 @@ namespace Celeste.Mod.PandorasBox
             texture = (dangerous.ContainsKey(texture)? texture : "koopa");
 
             String rawColor = data.Attr("color", "Green");
-            colorSpeed = float.Parse(data.Attr("colorSpeed", "0.8"));
+            colorSpeed = data.Float("colorSpeed", 0.8f);
 
             foreach (String s in rawColor.Split(','))
             {
                 colors.Add(ColorHelper.GetColor(s));
             }
 
-            int direction = Math.Sign(Int32.Parse(data.Attr("direction", "0")));
+            int direction = Math.Sign(data.Int("direction", 0));
 
             Speed = new Vector2(baseSpeed * direction, 0f);
             grace = 0f;
 
             prevLiftspeed = Vector2.Zero;
 
-            this.pickupIdleCollider = new Hitbox(18f, 18f, -9, -9);
-            this.pickupMovingCollider = new Hitbox(0f, 0f, 0f, 0f);
+            pickupIdleCollider = new Hitbox(18f, 18f, -9, -9);
+            pickupMovingCollider = new Hitbox(0f, 0f, 0f, 0f);
 
-            this.shellHeldCollider = new Hitbox(8f, 14f, -4f, -7f);
-            this.shellNotHeldCollider = new Hitbox(14f, 14f, -7f, -7f);
+            shellHeldCollider = new Hitbox(8f, 14f, -4f, -7f);
+            shellNotHeldCollider = new Hitbox(14f, 14f, -7f, -7f);
 
-            base.Add(new PlayerCollider(new Action<Player>(this.OnPlayer), null, null));
-            base.Collider = shellNotHeldCollider;
+            Add(new PlayerCollider(new Action<Player>(OnPlayer)));
+            Collider = shellNotHeldCollider;
 
-            this.onCollideH = new Collision(this.OnCollideH);
-            this.onCollideV = new Collision(this.OnCollideV);
+            onCollideH = new Collision(OnCollideH);
+            onCollideV = new Collision(OnCollideV);
 
-            this.Add((Component)(this.decorationIdle = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/deco_idle")));
-            this.decorationIdle.AddLoop("deco_idle", "", 0.1f);
-            this.decorationIdle.Play("deco_idle", true, false);
-            this.decorationIdle.CenterOrigin();
+            Add((Component)(decorationIdle = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/deco_idle")));
+            decorationIdle.AddLoop("deco_idle", "", 0.1f);
+            decorationIdle.Play("deco_idle", true, false);
+            decorationIdle.CenterOrigin();
 
-            this.Add((Component)(this.shellIdle = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/shell_idle")));
-            this.shellIdle.AddLoop("shell_idle", "", 0.1f);
-            this.shellIdle.Play("shell_idle", true, false);
-            this.shellIdle.CenterOrigin();
-            this.shellIdle.Color = colors[0];
+            Add((Component)(shellIdle = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/shell_idle")));
+            shellIdle.AddLoop("shell_idle", "", 0.1f);
+            shellIdle.Play("shell_idle", true, false);
+            shellIdle.CenterOrigin();
+            shellIdle.Color = colors[0];
 
-            this.Add((Component)(this.decorationMoving = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/deco_moving")));
-            this.decorationMoving.AddLoop("deco_moving", "", 0.1f);
-            this.decorationMoving.Play("deco_moving", true, false);
-            this.decorationMoving.CenterOrigin();
+            Add((Component)(decorationMoving = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/deco_moving")));
+            decorationMoving.AddLoop("deco_moving", "", 0.1f);
+            decorationMoving.Play("deco_moving", true, false);
+            decorationMoving.CenterOrigin();
 
-            this.Add((Component)(this.shellMoving = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/shell_moving")));
-            this.shellMoving.AddLoop("shell_moving", "", 0.1f);
-            this.shellMoving.Play("shell_moving", true, false);
-            this.shellMoving.CenterOrigin();
-            this.shellMoving.Color = colors[0];
+            Add((Component)(shellMoving = new Sprite(GFX.Game, $"objects/pandorasBox/shells/{texture}/shell_moving")));
+            shellMoving.AddLoop("shell_moving", "", 0.1f);
+            shellMoving.Play("shell_moving", true, false);
+            shellMoving.CenterOrigin();
+            shellMoving.Color = colors[0];
 
-            this.Add((Component)(this.Hold = new Holdable()));
-            this.Hold.PickupCollider = new Hitbox(18f, 18f, -9, -9);
-            this.Hold.OnPickup = new Action(this.OnPickup);
-            this.Hold.OnRelease = new Action<Vector2>(this.OnRelease);
+            Add((Component)(Hold = new Holdable()));
+            Hold.PickupCollider = new Hitbox(18f, 18f, -9, -9);
+            Hold.OnPickup = new Action(OnPickup);
+            Hold.OnRelease = new Action<Vector2>(OnRelease);
 
-            this.decorationMoving.Visible = this.shellMoving.Visible = false;
+            decorationMoving.Visible = shellMoving.Visible = false;
 
-            this.id = data.ID;
+            id = data.ID;
 
             if (lights)
             {
-                this.Add((Component)(this.bloom = new BloomPoint(1f, 16f)));
-                this.Add((Component)(this.light = new VertexLight(base.Collider.Center, Color.White, 1f, 8, 24)));
+                Add((Component)(bloom = new BloomPoint(1f, 16f)));
+                Add((Component)(light = new VertexLight(Collider.Center, Color.White, 1f, 8, 24)));
 
-                this.bloom.Visible = this.light.Visible = true;
+                bloom.Visible = light.Visible = true;
             }
         }
 
@@ -183,7 +183,7 @@ namespace Celeste.Mod.PandorasBox
 
                 Color newColor = Color.Lerp(colors[index], colors[(index + 1) % colors.Count], lerp);
 
-                this.shellMoving.Color = this.shellIdle.Color = newColor;
+                shellMoving.Color = shellIdle.Color = newColor;
             }
 
             timeAcc += Engine.DeltaTime;
@@ -191,27 +191,27 @@ namespace Celeste.Mod.PandorasBox
             decorationMoving.Visible = shellMoving.Visible = Speed.X != 0;
             decorationIdle.Visible = shellIdle.Visible = Speed.X == 0;
 
-            if (!this.Hold.IsHeld)
+            if (!Hold.IsHeld)
             {
                 foreach (Spring spring in scene.Entities.Where(e => e is Spring))
                 {
-                    if (this.CollideCheck(spring))
+                    if (CollideCheck(spring))
                     {
-                        Audio.Play("event:/game/general/spring", this.BottomCenter);
+                        Audio.Play("event:/game/general/spring", BottomCenter);
                         HitSpring(spring);
                     }
                 }
 
-                this.Speed.Y = Calc.Approach(this.Speed.Y, 200f, 400f * Engine.DeltaTime);
-                this.Speed.Y = Calc.Approach(this.Speed.Y, 200f, 400f * Engine.DeltaTime);
+                Speed.Y = Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
+                Speed.Y = Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
 
-                this.MoveH(this.Speed.X * Engine.DeltaTime, this.onCollideH, null);
-                this.MoveV(this.Speed.Y * Engine.DeltaTime, this.onCollideV, null);
+                MoveH(Speed.X * Engine.DeltaTime, onCollideH, null);
+                MoveV(Speed.Y * Engine.DeltaTime, onCollideV, null);
 
                 if (LiftSpeed == Vector2.Zero && prevLiftspeed != Vector2.Zero)
                 {
-                    this.Speed = prevLiftspeed;
-                    this.Speed.X = Math.Sign(this.Speed.X) * baseSpeed;
+                    Speed = prevLiftspeed;
+                    Speed.X = Math.Sign(Speed.X) * baseSpeed;
                     prevLiftspeed = Vector2.Zero;
                 }
 
@@ -222,34 +222,29 @@ namespace Celeste.Mod.PandorasBox
                 prevLiftspeed = Vector2.Zero;
             }
 
-            if (!this.Hold.IsHeld && this.Collider == this.shellHeldCollider && grace == 0)
+            if (!Hold.IsHeld && Collider == shellHeldCollider && grace == 0)
             {
-                this.Collider = this.shellNotHeldCollider;
+                Collider = shellNotHeldCollider;
 
                 if (CollideCheck<Solid>())
                 {
-                    this.Collider = shellHeldCollider;
+                    Collider = shellHeldCollider;
                 }
             }
 
-            this.Hold.PickupCollider = Math.Abs(Speed.X) >= 10e-6 ? this.pickupMovingCollider : this.pickupIdleCollider;
+            Hold.PickupCollider = Math.Abs(Speed.X) >= 10e-6 ? pickupMovingCollider : pickupIdleCollider;
 
             base.Update();
         }
 
         public void HitSpring(Spring spring)
         {
-            if (!this.Hold.IsHeld && springGrace == 0)
+            if (!Hold.IsHeld && springGrace == 0)
             {
-                if (springMethod == null)
-                {
-                    springMethod = spring.GetType().GetMethod("BounceAnimate", BindingFlags.NonPublic | BindingFlags.Instance);
-                }
-
                 Speed.Y -= spring.Orientation.ToString().Equals("Floor") ? 240f : 140f;
 
                 springGrace = graceSpring;
-                springMethod.Invoke(spring, null);
+                springMethodInfo.Invoke(spring, null);
             }
         }
 
@@ -259,33 +254,33 @@ namespace Celeste.Mod.PandorasBox
             {
                 if (isDangerous)
                 {
-                    player.Die((player.Center - this.Position).SafeNormalize());
+                    player.Die((player.Center - Position).SafeNormalize());
 
                     return;
                 }
 
-                if (player.BottomCenter.Y < this.Center.Y)
+                if (player.BottomCenter.Y < Center.Y)
                 {
                     grace = graceBounce;
-                    player.Bounce(this.Top);
+                    player.Bounce(Top);
 
-                    Speed.X = Math.Abs(Speed.X) >= 10e-6 ? 0 : ((this.Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed;
+                    Speed.X = Math.Abs(Speed.X) >= 10e-6 ? 0 : ((Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed;
 
-                    Audio.Play("event:/game/general/thing_booped", this.Position).setVolume(0.5f);
+                    Audio.Play("event:/game/general/thing_booped", Position).setVolume(0.5f);
                 }
                 else
                 {
                     if (Speed.X == 0)
                     {
                         // Kick
-                        Speed = new Vector2(((this.Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed, gravity);
+                        Speed = new Vector2(((Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed, gravity);
                         grace = gracePush;
 
-                        Audio.Play("event:/game/general/thing_booped", this.Position).setVolume(0.5f);
+                        Audio.Play("event:/game/general/thing_booped", Position).setVolume(0.5f);
                     }
                     else
                     {
-                        player.Die((player.Center - this.Position).SafeNormalize(), false, true);
+                        player.Die((player.Center - Position).SafeNormalize(), false, true);
                     }                   
                 }
             }
@@ -295,16 +290,16 @@ namespace Celeste.Mod.PandorasBox
         {
             if (data.Hit is DashSwitch)
             {
-                (data.Hit as DashSwitch).OnDashCollide(null, Vector2.UnitX * Math.Sign(this.Speed.X));
+                (data.Hit as DashSwitch).OnDashCollide(null, Vector2.UnitX * Math.Sign(Speed.X));
             }
 
-            Audio.Play("event:/game/general/thing_booped", this.Position).setVolume(0.3f);
-            this.Speed.X *= -1;
+            Audio.Play("event:/game/general/thing_booped", Position).setVolume(0.3f);
+            Speed.X *= -1;
         }
 
         private void OnCollideV(CollisionData data)
         {
-            this.Speed.Y = 0f;
+            Speed.Y = 0f;
         }
 
         public override bool IsRiding(Solid solid)
@@ -314,8 +309,8 @@ namespace Celeste.Mod.PandorasBox
 
         private void OnPickup()
         {
-            this.Collider = shellHeldCollider;
-            this.AddTag(Tags.Persistent);
+            Collider = shellHeldCollider;
+            AddTag(Tags.Persistent);
             Speed = new Vector2(0f, 0f);
         }
 
@@ -324,14 +319,14 @@ namespace Celeste.Mod.PandorasBox
             Speed = new Vector2(Math.Sign(force.X) * baseSpeed, baseThrowHeight);
             grace = graceThrow;
 
-            this.RemoveTag(Tags.Persistent);
+            RemoveTag(Tags.Persistent);
         }
 
         protected override void OnSquish(CollisionData data)
         {
             if (base.TrySquishWiggle(data))
             {
-                this.RemoveSelf();
+                RemoveSelf();
             }
         }
 

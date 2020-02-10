@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Celeste;
 using Celeste.Mod;
 using Celeste.Mod.Entities;
+using System.Reflection;
+using System.Collections;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -20,6 +22,8 @@ namespace Celeste.Mod.PandorasBox
         private int id;
         private bool active;
         private string visualMode;
+
+        private static FieldInfo spinnerOffset = typeof(CrystalStaticSpinner).GetField("offset", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private bool getFlag()
         {
@@ -89,34 +93,46 @@ namespace Celeste.Mod.PandorasBox
 
         public static void Load()
         {
-            On.Celeste.CrystalStaticSpinner.Update += CrystalStaticSpinner_Update;
             On.Celeste.Mod.Entities.DialogCutscene.OnBegin += DialogCutscene_OnBegin;
             On.Celeste.Mod.Entities.DialogCutscene.OnEnd += DialogCutscene_OnEnd;
+
             On.Celeste.CrystalStaticSpinner.Update += CrystalStaticSpinner_Update;
+
             On.Celeste.Player.Die += Player_OnDie;
+
+            On.Celeste.Lookout.Interact += Lookout_Interact;
+            On.Celeste.Lookout.LookRoutine += Lookout_LookRoutine;
+            On.Celeste.Lookout.StopInteracting += Lookout_StopInteracting;
         }
 
         public static void Unload()
         {
-            On.Celeste.CrystalStaticSpinner.Update -= CrystalStaticSpinner_Update;
             On.Celeste.Mod.Entities.DialogCutscene.OnBegin -= DialogCutscene_OnBegin;
             On.Celeste.Mod.Entities.DialogCutscene.OnEnd -= DialogCutscene_OnEnd;
+
             On.Celeste.CrystalStaticSpinner.Update -= CrystalStaticSpinner_Update;
+
             On.Celeste.Player.Die -= Player_OnDie;
+
+            On.Celeste.Lookout.Interact -= Lookout_Interact;
+            On.Celeste.Lookout.LookRoutine -= Lookout_LookRoutine;
+            On.Celeste.Lookout.StopInteracting -= Lookout_StopInteracting;
         }
 
         private static void CrystalStaticSpinner_Update(On.Celeste.CrystalStaticSpinner.orig_Update orig, CrystalStaticSpinner self)
         {
             orig(self);
 
-            if (!self.Collidable)
+            bool onInterval = self.Scene.OnInterval(0.05f, (float)spinnerOffset.GetValue(self));
+
+            if (self.Visible && onInterval)
             {
                 foreach (Player entity in self.Scene.Tracker.GetEntities<Player>())
                 {
-                    if (Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f)
-                    {
-                        self.Collidable = true;
+                    self.Collidable |= Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f;
 
+                    if (self.Collidable)
+                    {
                         break;
                     }
                 }
@@ -161,6 +177,38 @@ namespace Celeste.Mod.PandorasBox
             }
 
             return null;
+        }
+
+        private static IEnumerator Lookout_LookRoutine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
+        {
+            yield return orig(self, player);
+
+            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
+            {
+                player2.StateMachine.State = Player.StNormal;
+            }
+
+            yield break;
+        }
+
+        private static void Lookout_StopInteracting(On.Celeste.Lookout.orig_StopInteracting orig, Lookout self)
+        {
+            orig(self);
+
+            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
+            {
+                player2.StateMachine.State = Player.StNormal;
+            }
+        }
+
+        private static void Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player)
+        {
+            orig(self, player);
+
+            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
+            {
+                player2.StateMachine.State = Player.StDummy;
+            }
         }
     }
 }
