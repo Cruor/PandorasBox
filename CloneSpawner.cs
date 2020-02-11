@@ -121,20 +121,15 @@ namespace Celeste.Mod.PandorasBox
 
         private static void CrystalStaticSpinner_Update(On.Celeste.CrystalStaticSpinner.orig_Update orig, CrystalStaticSpinner self)
         {
+            bool visibleBeforeOrig = self.Visible;
+
             orig(self);
 
-            bool onInterval = self.Scene.OnInterval(0.05f, (float)spinnerOffset.GetValue(self));
-
-            if (self.Visible && onInterval)
+            if (visibleBeforeOrig && !self.Collidable && self.Scene.OnInterval(0.05f, (float)spinnerOffset.GetValue(self)))
             {
                 foreach (Player entity in self.Scene.Tracker.GetEntities<Player>())
                 {
-                    self.Collidable |= Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f;
-
-                    if (self.Collidable)
-                    {
-                        break;
-                    }
+                    self.Collidable = self.Collidable || (Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f);
                 }
             }
         }
