@@ -2,7 +2,7 @@ module PandorasBoxCircularResortPlatform
 
 using ..Ahorn, Maple
 
-@pardef CircularResortPlatform(x1::Integer, y1::Integer, x2::Integer=x1 + 16, y2::Integer=y1, width::Integer=Maple.defaultBlockWidth, texture::String="default", clockwise::Bool=true, speed::Number=1500, particles::Bool=true, attachToSolid::Bool=true, renderRail::Bool=true, lineFillColor::String="160b12", lineEdgeColor::String="2a1923") = Entity("pandorasBox/circularResortPlatform", x=x1, y=y1, nodes=Tuple{Int, Int}[(x2, y2)], width=width, texture=texture, clockwise=clockwise, speed=speed, particles=particles, attachToSolid=attachToSolid, renderRail=renderRail, lineFillColor=lineFillColor, lineEdgeColor=lineEdgeColor)
+@pardef CircularResortPlatform(x1::Integer, y1::Integer, x2::Integer=x1 + 16, y2::Integer=y1, width::Integer=Maple.defaultBlockWidth, texture::String="default", clockwise::Bool=true, speed::Number=1500.0, particles::Bool=true, attachToSolid::Bool=true, renderRail::Bool=true, lineFillColor::String="160b12", lineEdgeColor::String="2a1923") = Entity("pandorasBox/circularResortPlatform", x=x1, y=y1, nodes=Tuple{Int, Int}[(x2, y2)], width=width, texture=texture, clockwise=clockwise, speed=speed, particles=particles, attachToSolid=attachToSolid, renderRail=renderRail, lineFillColor=lineFillColor, lineEdgeColor=lineEdgeColor)
 
 const placements = Ahorn.PlacementDict(
     "Circular Platform (Pandora's Box)" => Ahorn.EntityPlacement(

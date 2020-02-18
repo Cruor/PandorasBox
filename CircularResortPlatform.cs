@@ -60,6 +60,11 @@ namespace Celeste.Mod.PandorasBox
             this.texture = texture;
             this.width = width;
 
+            if (String.IsNullOrEmpty(texture))
+            {
+                texture = AreaData.Get(Scene).WoodPlatform;
+            }
+
             this.renderRail = renderRail;
             this.lineFillColor = lineFillColor;
             this.lineEdgeColor = lineEdgeColor;
@@ -87,7 +92,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public CircularResortPlatform(EntityData data, Vector2 offset) : this(data.Position + offset, data.Width, data.Nodes[0] + offset, data.Attr("texture", "default"), data.Bool("clockwise", true), data.Float("speed", 1500f), data.Bool("particles", true), data.Bool("attachToSolid", true), data.Bool("renderRail", true), ColorHelper.GetColor(data.Attr("lineFillColor", "160b12")), ColorHelper.GetColor(data.Attr("lineEdgeColor", "2a1923")))
+        public CircularResortPlatform(EntityData data, Vector2 offset) : this(data.Position + offset, data.Width, data.Nodes[0] + offset, data.Attr("texture", ""), data.Bool("clockwise", true), data.Float("speed", 1500f), data.Bool("particles", true), data.Bool("attachToSolid", true), data.Bool("renderRail", true), ColorHelper.GetColor(data.Attr("lineFillColor", "160b12")), ColorHelper.GetColor(data.Attr("lineEdgeColor", "2a1923")))
         {
         }
 

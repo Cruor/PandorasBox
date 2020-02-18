@@ -2,7 +2,7 @@ module PandorasBoxWaterDrownController
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/waterDrowningController" WaterDrowningController(x::Integer, y::Integer, mode="Swimming", maxDuration::Number=10)
+@mapdef Entity "pandorasBox/waterDrowningController" WaterDrowningController(x::Integer, y::Integer, mode="Swimming", maxDuration::Number=10.0)
 
 const placements = Ahorn.PlacementDict(
     "Water Drowning Controller (Pandora's Box)" => Ahorn.EntityPlacement(
