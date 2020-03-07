@@ -28,6 +28,8 @@ namespace Celeste.Mod.PandorasBox
         private Color lineFillColor;
         private Color lineEdgeColor;
 
+        private CircularResortPlatformRail rail;
+
         private float length;
         private float addY;
         private float sinkTimer;
@@ -83,6 +85,7 @@ namespace Celeste.Mod.PandorasBox
                     OnMove = delegate (Vector2 v)
                     {
                         startCenter += v;
+                        rail.Position += v;
                     },
                     OnDestroy = delegate()
                     {
@@ -152,14 +155,6 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Render()
         {
-            if (renderRail)
-            {
-                Vector2 pos = startCenter + new Vector2(width / 2f, 4);
-
-                Draw.Circle(pos, length, lineEdgeColor, 4f, 32);
-                Draw.Circle(pos, length, lineFillColor, 2f, 32);
-            }
-
             textures[0].Draw(this.Position);
 
             int num = 8;
@@ -180,6 +175,11 @@ namespace Celeste.Mod.PandorasBox
             for (int i = 0; i < this.textures.Length; i++)
             {
                 this.textures[i] = mtexture.GetSubtexture(i * 8, 0, 8, 8, null);
+            }
+
+            if (renderRail)
+            {
+                scene.Add(rail = new CircularResortPlatformRail(startCenter, lineEdgeColor, lineFillColor, width, length));
             }
 
             base.Added(scene);

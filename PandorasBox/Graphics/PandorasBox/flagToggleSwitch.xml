@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Sprites>
+  <pandorasBoxFlagTooggleSwitch path="objects/pandorasBox/flagToggleSwitch/">
+    <Center/>
+    <Anim id="activate" path="switch" frames="10-0" delay="0.08" goto="activateLoop"/>
+    <Loop id="activateLoop" path="switch" frames="0-1" delay="0.08"/>
+    <Anim id="activateOff" path="switch" frames="10-0,15-16" delay="0.08"/>
+    <Loop id="activateOffLoop" path="switch" frames="16" delay="0.08"/>
+    <Anim id="deactivate" path="switch" frames="2-12" delay="0.08" goto="deactivateLoop"/>
+    <Loop id="deactivateLoop" path="switch" frames="11-12" delay="0.08"/>
+    <Anim id="deactivateOff" path="switch" frames="2-12,13-14" delay="0.08"/>
+    <Loop id="deactivateOffLoop" path="switch" frames="14" delay="0.08"/>
+  </pandorasBoxFlagTooggleSwitch>
+</Sprites>

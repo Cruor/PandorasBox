@@ -18,6 +18,8 @@ namespace Celeste.Mod.PandorasBox
         private int id;
         private TalkComponent talker;
 
+        private static readonly float activationDistance = 20f;
+
         public Lever(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             Add((Component)(sprite = new Sprite(GFX.Game, "objects/pandorasBox/lever/lever")));
@@ -33,7 +35,7 @@ namespace Celeste.Mod.PandorasBox
 
             Collider = new Hitbox(sprite.Width, sprite.Height, -sprite.Width / 2, -sprite.Height);
 
-            Add(talker = new TalkComponent(new Rectangle(-10, -16, 20, 16), new Vector2(0.0f, -18f), onTalk));
+            Add(talker = new TalkComponent(new Rectangle((int)(-sprite.Width / 2 - 2), -4, (int)(sprite.Width + 4), 4), new Vector2(0.0f, -18f), onTalk));
             talker.Enabled = true;
         }
 
@@ -111,7 +113,7 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Update()
         {
-            talker.Enabled = Scene.Tracker.GetEntities<Player>().Cast<Player>().Any(player => (Position - player.Position).Length() < 20f && player.OnGround());
+            talker.Enabled = Scene.Tracker.GetEntities<Player>().Cast<Player>().Any(player => (Position - player.Position).Length() < activationDistance && player.OnGround() && !PlayerHelper.PlayerInWater(player));
 
             bool flagValue = getFlag();
             if (flagValue != active && !sprite.Animating)

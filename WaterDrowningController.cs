@@ -14,9 +14,6 @@ namespace Celeste.Mod.PandorasBox
     [CustomEntity("pandorasBox/waterDrowningController")]
     class WaterDrowningController : Entity
     {
-        private static MethodInfo playerSwimCheck = typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static MethodInfo playerSwimUnderwaterCheck = typeof(Player).GetMethod("SwimUnderwaterCheck", BindingFlags.NonPublic | BindingFlags.Instance);
-
         public float WaterDuration;
         public float WaterDrownDuration;
         public string Mode;
@@ -29,30 +26,13 @@ namespace Celeste.Mod.PandorasBox
             Mode = data.Attr("mode", "Swimming");
         }
 
-        private bool playerInWater(Player player)
-        {
-            if (player != null)
-            {
-                if (Mode == "Swimming")
-                {
-                    return (bool)playerSwimCheck.Invoke(player, new object[] { });
-                }
-                else if (Mode == "Diving")
-                {
-                    return (bool)playerSwimUnderwaterCheck.Invoke(player, new object[] { });
-                }
-            }
-
-            return false;
-        }
-
         public override void Update()
         {
             Player player = base.Scene.Tracker.GetEntity<Player>();
 
             if (player != null)
             {
-                bool inWater = playerInWater(player);
+                bool inWater = PlayerHelper.PlayerInWater(player, Mode);
 
                 if (inWater)
                 {

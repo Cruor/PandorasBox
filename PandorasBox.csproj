@@ -55,7 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AirBubbles.cs" />
+    <Compile Include="CircularResortPlatformRail.cs" />
     <Compile Include="CloneSpawner.cs" />
+    <Compile Include="FlagToggleSwitch.cs" />
     <Compile Include="Gate.cs" />
     <Compile Include="Lamp.cs" />
     <Compile Include="LaserDetectorActor.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="MarioShell.cs" />
     <Compile Include="PandorasBoxMod.cs" />
     <Compile Include="PlayerCloneHelper.cs" />
+    <Compile Include="PlayerHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TileGlitcher.cs" />
     <Compile Include="TimeField.cs" />

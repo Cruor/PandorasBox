@@ -23,6 +23,13 @@ namespace Celeste.Mod.PandorasBox
             Instance = this;
         }
 
+        public override void LoadContent(bool firstLoad)
+        {
+            base.LoadContent(firstLoad);
+
+            FlagToggleSwitch.LoadContent();
+        }
+
         public override void Load()
         {
             CloneSpawner.Load();

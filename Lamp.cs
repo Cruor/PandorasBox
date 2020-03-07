@@ -59,6 +59,8 @@ namespace Celeste.Mod.PandorasBox
             Add((Component)(light = new VertexLight(lightColor, 1f, 48, 64)));
 
             bloom.Visible = light.Visible = false;
+
+            Depth = 5;
         }
 
         private void onLastFrame(string s)
