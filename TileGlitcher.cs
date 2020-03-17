@@ -117,8 +117,8 @@ namespace Celeste.Mod.PandorasBox
                 validBg.Add('0');
             }
 
-            validFg = string.IsNullOrEmpty(customFgTiles) ? validFg : customFgTiles.ToList();
-            validBg = string.IsNullOrEmpty(customBgTiles) ? validBg : customBgTiles.ToList();
+            validFg = string.IsNullOrEmpty(customFgTiles) ? validFg : customFgTiles.Where(c => validFg.Contains(c)).ToList();
+            validBg = string.IsNullOrEmpty(customBgTiles) ? validBg : customBgTiles.Where(c => validBg.Contains(c)).ToList();
 
             while (active)
             {

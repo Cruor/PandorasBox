@@ -134,5 +134,8 @@ placements.entities.pandorasBox/flagToggleSwitch.tooltips.onlyOff=If the switch 
 placements.entities.pandorasBox/flagToggleSwitch.tooltips.silent=Whether the switch should make sounds when it is toggled or not.
 placements.entities.pandorasBox/flagToggleSwitch.tooltips.flag=Which flag the switch sets when active.
 
+# Dream Dash Controller
+placements.entities.pandorasBox/dreamDashController.tooltips.allowSameDirectionDash=If the player should be able to dash in the direction they are currently dashing.
+placements.entities.pandorasBox/dreamDashController.tooltips.sameDirectionSpeedMultiplier=The speed multiplier if the player dashes in the same direction.
 
 # -- Triggers -- 

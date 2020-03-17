@@ -57,6 +57,7 @@
     <Compile Include="AirBubbles.cs" />
     <Compile Include="CircularResortPlatformRail.cs" />
     <Compile Include="CloneSpawner.cs" />
+    <Compile Include="DreamDashControllercs.cs" />
     <Compile Include="FlagToggleSwitch.cs" />
     <Compile Include="Gate.cs" />
     <Compile Include="Lamp.cs" />
