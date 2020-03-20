@@ -34,6 +34,8 @@ namespace Celeste.Mod.PandorasBox
                             entity.Speed = entity.DashDir * entity.Speed.Length();
                             entity.Dashes = Math.Max(0, entity.Dashes - 1);
 
+                            Audio.Play("event:/char/madeline/dreamblock_enter");
+
                             if (sameDirection)
                             {
                                 entity.Speed *= sameDirectionSpeedMultiplier;

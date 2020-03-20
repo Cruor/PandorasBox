@@ -42,6 +42,10 @@
       <HintPath>..\..\..\..\Games\EGS\Celeste\MMHOOK_Celeste.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\MonoMod.Utils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="NLua">
       <HintPath>..\..\..\..\Games\EGS\Celeste\NLua.dll</HintPath>
       <Private>False</Private>
@@ -57,7 +61,7 @@
     <Compile Include="AirBubbles.cs" />
     <Compile Include="CircularResortPlatformRail.cs" />
     <Compile Include="CloneSpawner.cs" />
-    <Compile Include="DreamDashControllercs.cs" />
+    <Compile Include="DreamDashController.cs" />
     <Compile Include="FlagToggleSwitch.cs" />
     <Compile Include="Gate.cs" />
     <Compile Include="Lamp.cs" />

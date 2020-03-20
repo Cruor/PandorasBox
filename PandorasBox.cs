@@ -43,9 +43,10 @@ namespace Celeste.Mod.PandorasBox
             boxIdle.Play("box_idle");
             boxIdle.JustifyOrigin(0.5f, 1f);
             
-
             completeChapter = Boolean.Parse(data.Attr("completeChapter", "false"));
             dialogId = data.Attr("dialog", "");
+
+            Depth = 5;
         }
 
         private void onTalk(Player player)
