@@ -22,24 +22,27 @@ namespace Celeste.Mod.PandorasBox
 
         private float lerp;
 
-        private float baseTimeRate;
+        private static float baseTimeRate = 1f;
+        private static float ourLastTimeRate = 1f;
+        private static float playerTimeRate = 1f;
 
         private float animTimer;
         private float animRate;
-        private Boolean render;
+        private bool render;
 
-        private Boolean lingering;
-        private Boolean playerAffected;
+        private bool lingering;
+        private bool playerAffected;
 
         private MTexture[] particleTextures;
         private TimeParticle[] particles;
 
         private Color tint;
 
-        private static Player targetPlayer;
-        private static PropertyInfo engineDeltaTimeProp;
-        private static TimeField lingeringTarget;
-        private static Boolean addedHook;
+        private static WeakReference<Player> targetPlayer = new WeakReference<Player>(null);
+        private static WeakReference<TimeField> lingeringTarget = new WeakReference<TimeField>(null);
+
+        private static PropertyInfo engineDeltaTimeProp = typeof(Engine).GetProperty("DeltaTime");
+        private static bool hookAdded;
 
         public TimeField(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
@@ -54,7 +57,7 @@ namespace Celeste.Mod.PandorasBox
             animRate = float.Parse(data.Attr("animRate", "6.0"));
 
             render = Boolean.Parse(data.Attr("render", "true"));
-            playerAffected = Boolean.Parse(data.Attr("playerAffected", "true"));
+            playerAffected = Boolean.Parse(data.Attr("playerAffected", "false"));
             lingering = Boolean.Parse(data.Attr("lingering", "false"));
 
             String rawColor = data.Attr("color", "teal");
@@ -72,104 +75,100 @@ namespace Celeste.Mod.PandorasBox
             };
         }
 
+        public static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player player)
+        {
+            float dt = Engine.DeltaTime;
+            engineDeltaTimeProp.SetValue(null, Engine.RawDeltaTime * Engine.TimeRateB * baseTimeRate * playerTimeRate, null);
+
+            orig(player);
+
+            engineDeltaTimeProp.SetValue(null, dt, null);
+        }
+
         public void OnPlayer(Player player)
         {
-            targetPlayer = player;
-            lingeringTarget = this;
-
-            CacheTimeProp();
-
-            if (!addedHook)
-            {
-                On.Celeste.Player.Update += (orig, p) => {
-                    float dt = Engine.DeltaTime;
-                    engineDeltaTimeProp.SetValue(null, Engine.RawDeltaTime * Engine.TimeRateB, null);
-
-                    orig(p);
-
-                    engineDeltaTimeProp.SetValue(null, dt, null);
-                };
-
-                addedHook = true;
-            }
+            targetPlayer.SetTarget(player);
+            lingeringTarget.SetTarget(this);
         }
 
         private Boolean PlayerInside()
         {
-            if (targetPlayer == null)
+            TimeField field = GetValueOrNull(lingeringTarget);
+            Player player = GetValueOrNull(targetPlayer);
+
+            if (player == null)
             {
                 return false;
             }
 
             if (lingering)
             {
-                return this == lingeringTarget || this.CollideCheck(targetPlayer);
+                return this == field || this.CollideCheck(player);
             }
             else
             {
-                return this.CollideCheck(targetPlayer);
+                return this.CollideCheck(player);
             }
         }
 
         private Boolean PlayerMoving()
         {
-            if (targetPlayer == null)
+            Player player = GetValueOrNull(targetPlayer);
+
+            if (player == null)
             {
                 return false;
             }
 
-            return targetPlayer.Speed != Vector2.Zero;
-        }
-
-        public void CacheTimeProp()
-        {
-            if (engineDeltaTimeProp == null)
-            {
-                engineDeltaTimeProp = typeof(Engine).GetProperty("DeltaTime");
-            }
+            return player.Speed != Vector2.Zero;
         }
 
         public override void Update()
         {
+            AddHook();
+
             animTimer += animRate * Engine.DeltaTime;
-
-            if (PlayerInside() && lingeringTarget.playerAffected)
-            {
-                CacheTimeProp();
-
-                // float dt = Engine.DeltaTime;
-                // engineDeltaTimeProp.SetValue(null, Engine.RawDeltaTime * Engine.TimeRateB - dt, null);
-                // targetPlayer.Update();
-                // engineDeltaTimeProp.SetValue(null, dt, null);
-            }
-
-            if (this == lingeringTarget && !PlayerInside())
-            {
-                Engine.TimeRate = baseTimeRate;
-            }
-
             UpdateTimeRate();
 
-            if (targetPlayer != null && targetPlayer.Dead)
-            {
-                Engine.TimeRate = 1.0f;
-            }
-
-            // OnPlayer will set this to true again, we just assume that the player is no longer colliding on every update
             base.Update();
         }
 
         private void UpdateTimeRate()
         {
-            if (lingeringTarget == this && PlayerInside() && targetPlayer != null && !targetPlayer.Dead)
+            TimeField field = GetValueOrNull(lingeringTarget);
+            Player player = GetValueOrNull(targetPlayer);
+
+            if ((Engine.TimeRate != ourLastTimeRate) && Engine.TimeRate > 0f)
+            {
+                baseTimeRate = Engine.TimeRate;
+            }
+
+            if (field == this && !PlayerInside())
+            {
+                Engine.TimeRate = baseTimeRate;
+            }
+
+            if (field == this && PlayerInside() && targetPlayer != null && !player.Dead)
             {
                 // The lerp updates should be in realtime, not ingame time
                 float dt = Engine.RawDeltaTime * baseTimeRate;
                 float delta = PlayerMoving() ? dt / startTime : -dt / stopTime;
 
                 lerp = Calc.Clamp(lerp + delta, 0, 1);
-                Engine.TimeRate = (stop + (start - stop) * lerp) * baseTimeRate;
+                Engine.TimeRate = (stop + (start - stop) * lerp);
+
+                if (field.playerAffected)
+                {
+                    playerTimeRate = Engine.TimeRate;
+                }
             }
+
+            if (player != null && player.Dead)
+            {
+                Engine.TimeRate = (stop + (start - stop) * lerp);
+            }
+
+            ourLastTimeRate = Engine.TimeRate;
         }
 
         private void Setup()
@@ -188,8 +187,28 @@ namespace Celeste.Mod.PandorasBox
         public override void Added(Scene scene)
         {
             base.Added(scene);
+
+            AddHook();
+
             baseTimeRate = Engine.TimeRate;
             Setup();
+        }
+
+        public override void Removed(Scene scene)
+        {
+            base.Removed(scene);
+
+            RemoveHook();
+        }
+
+        public override void SceneEnd(Scene scene)
+        {
+            base.SceneEnd(scene);
+
+            baseTimeRate = 1f;
+            playerTimeRate = 1f;
+
+            RemoveHook();
         }
 
         public override void Render()
@@ -268,6 +287,45 @@ namespace Celeste.Mod.PandorasBox
                 pos.Y -= this.Height;
 
             return pos;
+        }
+
+        public static void AddHook()
+        {
+            if (!hookAdded)
+            {
+                On.Celeste.Player.Update += PlayerUpdateHook;
+                hookAdded = true;
+            }
+        }
+
+        public static void RemoveHook()
+        {
+            if (hookAdded)
+            {
+                On.Celeste.Player.Update -= PlayerUpdateHook;
+                hookAdded = false;
+            }
+        }
+
+        public static T GetValueOrNull<T>(WeakReference<T> weakRef) where T : class {
+            T value;
+
+            if (weakRef != null && weakRef.TryGetTarget(out value))
+            {
+                return value;
+            }
+
+            return default(T);
+        }
+
+        public static void Load()
+        {
+            AddHook();
+        }
+
+        public static void Unload()
+        {
+            RemoveHook();
         }
     }
 }

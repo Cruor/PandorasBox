@@ -12,6 +12,8 @@ namespace Celeste.Mod.PandorasBox
         private bool allowSameDirectionDash;
         private float sameDirectionSpeedMultiplier;
 
+        public static FieldInfo playerDashCooldownTimerMethod = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
+
         public DreamDashController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             allowSameDirectionDash = data.Bool("allowSameDirectionDash", false);
@@ -24,25 +26,30 @@ namespace Celeste.Mod.PandorasBox
             {
                 foreach (Player entity in Scene.Tracker.GetEntities<Player>())
                 {
-                    if (entity.StateMachine.State == Player.StDreamDash && entity.CanDash)
+                    if (entity.StateMachine.State == Player.StDreamDash)
                     {
-                        bool sameDirection = Input.GetAimVector() == entity.DashDir;
+                        playerDashCooldownTimerMethod.SetValue(entity, 0f);
 
-                        if (!sameDirection || allowSameDirectionDash)
+                        if (entity.CanDash)
                         {
-                            entity.DashDir = Input.GetAimVector();
-                            entity.Speed = entity.DashDir * entity.Speed.Length();
-                            entity.Dashes = Math.Max(0, entity.Dashes - 1);
+                            bool sameDirection = Input.GetAimVector() == entity.DashDir;
 
-                            Audio.Play("event:/char/madeline/dreamblock_enter");
-
-                            if (sameDirection)
+                            if (!sameDirection || allowSameDirectionDash)
                             {
-                                entity.Speed *= sameDirectionSpeedMultiplier;
-                                entity.DashDir *= Math.Sign(sameDirectionSpeedMultiplier);
-                            }
+                                entity.DashDir = Input.GetAimVector();
+                                entity.Speed = entity.DashDir * entity.Speed.Length();
+                                entity.Dashes = Math.Max(0, entity.Dashes - 1);
 
-                            Input.Dash.ConsumeBuffer();
+                                Audio.Play("event:/char/madeline/dreamblock_enter");
+
+                                if (sameDirection)
+                                {
+                                    entity.Speed *= sameDirectionSpeedMultiplier;
+                                    entity.DashDir *= Math.Sign(sameDirectionSpeedMultiplier);
+                                }
+
+                                Input.Dash.ConsumeBuffer();
+                            }
                         }
                     }
                 }

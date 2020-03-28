@@ -34,12 +34,14 @@ namespace Celeste.Mod.PandorasBox
         {
             CloneSpawner.Load();
             WaterDrowningController.Load();
+            TimeField.Load();
         }
 
         public override void Unload()
         {
             CloneSpawner.Unload();
             WaterDrowningController.Unload();
+            TimeField.Unload();
         }
     }
 }

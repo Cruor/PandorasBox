@@ -171,13 +171,12 @@ namespace Celeste.Mod.PandorasBox
             if (string.IsNullOrEmpty(dialogId))
             {
                 List<string> options = getDialogOptions();
-                Monocle.Engine.Scene = new PreviewPostcard(new Postcard(options[Calc.Random.Next(options.Count)], 1));
+                Engine.Scene = new PreviewPostcard(new Postcard(Dialog.Get(options[Calc.Random.Next(options.Count)]), 1));
             }
             else
             {
-                Monocle.Engine.Scene = new PreviewPostcard(new Postcard(dialogId, 1));
+                Engine.Scene = new PreviewPostcard(new Postcard(Dialog.Get(dialogId), 1));
             }
-
         }
     }
 }

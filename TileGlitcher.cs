@@ -17,6 +17,8 @@ namespace Celeste.Mod.PandorasBox
         private static List<char> validFgTiles;
         private static List<char> validBgTiles;
 
+        private static int frameGroups = 4;
+
         private bool allowAir;
         private bool transformAir;
 
@@ -32,6 +34,8 @@ namespace Celeste.Mod.PandorasBox
 
         private bool active;
         private bool glitcherAdded;
+
+        private int frameGroup;
 
         private string flag;
 
@@ -52,6 +56,8 @@ namespace Celeste.Mod.PandorasBox
             this.flag = flag;
             this.customFgTiles = customFgTiles;
             this.customBgTiles = customBgTiles;
+
+            frameGroup = Calc.Random.Next(frameGroups);
 
             active = true;
 
@@ -78,12 +84,14 @@ namespace Celeste.Mod.PandorasBox
         {
             Level level = Scene as Level;
 
+            int currentFrameGroup = (int)(Engine.FrameCounter % (ulong)frameGroups);
+
             if (!string.IsNullOrEmpty(flag))
             {
                 active = flag.Split(new char[] {','}).Any((string f) => level.Session.GetFlag(f));
             }
 
-            if (active && !glitcherAdded)
+            if (active && !glitcherAdded && currentFrameGroup == frameGroup)
             {
                 Add((Component)new Coroutine(tileGlitcher(), true));
             }
@@ -122,18 +130,15 @@ namespace Celeste.Mod.PandorasBox
 
             while (active)
             {
-                VirtualMap<char> fgData = level.SolidsData;
-                VirtualMap<MTexture> fgTexes = level.SolidTiles.Tiles.Tiles;
-                VirtualMap<bool> collision = ((Grid)level.SolidTiles.Collider).Data;
-
-                VirtualMap<char> bgData = level.BgData;
-                VirtualMap<MTexture> bgTexes = level.BgTiles.Tiles.Tiles;
-
-                VirtualMap<char> newFgData = new VirtualMap<char>(tw + 2, th + 2, '0');
-                VirtualMap<char> newBgData = new VirtualMap<char>(tw + 2, th + 2, '0');
-
-                if (glitchFg)
+                if (glitchFg && validFg.Count > 0)
                 {
+                    VirtualMap<char> fgData = level.SolidsData;
+                    VirtualMap<MTexture> fgTexes = level.SolidTiles.Tiles.Tiles;
+
+                    VirtualMap<bool> collision = ((Grid)level.SolidTiles.Collider).Data;
+
+                    VirtualMap<char> newFgData = new VirtualMap<char>(tw + 2, th + 2, '0');
+
                     for (int x = ox - 1; x < ox + tw + 1; x++)
                     {
                         for (int y = oy - 1; y < oy + th + 1; y++)
@@ -176,8 +181,13 @@ namespace Celeste.Mod.PandorasBox
                     }
                 }
 
-                if (glitchBg)
+                if (glitchBg && validBg.Count > 0)
                 {
+                    VirtualMap<char> bgData = level.BgData;
+                    VirtualMap<MTexture> bgTexes = level.BgTiles.Tiles.Tiles;
+
+                    VirtualMap<char> newBgData = new VirtualMap<char>(tw + 2, th + 2, '0');
+
                     for (int x = ox - 1; x < ox + tw + 1; x++)
                     {
                         for (int y = oy - 1; y < oy + th + 1; y++)
