@@ -15,6 +15,10 @@ namespace Celeste.Mod.PandorasBox
         private int detectionDelay = 0;
         private HashSet<Laserbeam> handledBeams;
 
+        private float deltaTimeAcc = 0f;
+
+        private static float oneFrame = 1f / 60f;
+
         public int DetectionDelay {
             get {
                 return detectionDelay;
@@ -69,10 +73,8 @@ namespace Celeste.Mod.PandorasBox
             return colliding;
         }
 
-        public override void Update()
+        private void UpdateLaserQueue()
         {
-            laserbeamPaq.Enqueue(LaserHelper.ConnectedLasers(Scene, this));
-
             if (laserbeamPaq.Count > DetectionDelay)
             {
                 List<Laserbeam> laserbeams = laserbeamPaq.Peek(DetectionDelay);
@@ -94,6 +96,31 @@ namespace Celeste.Mod.PandorasBox
                 {
                     handledBeams.Remove(beam);
                     OnDeadLaserbeam(beam);
+                }
+            }
+
+            laserbeamPaq.Enqueue(LaserHelper.ConnectedLasers(Scene, this));
+        }
+
+        public override void Update()
+        {
+            // Update based on when frames should have passed time wise, not actual render frames.
+
+            bool approxOneFrame = Math.Abs(Engine.DeltaTime - oneFrame) < 0.001f;
+
+            if (approxOneFrame)
+            {
+                UpdateLaserQueue();
+            }
+            else
+            {
+                deltaTimeAcc += Engine.DeltaTime;
+
+                while (deltaTimeAcc >= oneFrame)
+                {
+                    UpdateLaserQueue();
+
+                    deltaTimeAcc -= oneFrame;
                 }
             }
 
