@@ -77,7 +77,6 @@ namespace Celeste.Mod.PandorasBox
                 bool playerCloseEnough = playerDistance < 40f;
                 talker.Enabled = canTalk && playerCloseEnough && player.OnGround();
 
-                Engine.TimeRate = Calc.Approach(Engine.TimeRate, 1f, 4f * Engine.DeltaTime);
                 Distort.GameRate = Calc.Approach(Distort.GameRate, Calc.Map(Engine.TimeRate, 0.5f, 1f, 0f, 1f), Engine.DeltaTime * 2f);
                 Distort.Anxiety = Calc.Approach(Distort.Anxiety, (0.5f + Calc.Random.Range(-0.2f, 0.2f)) * effectAcc, 8f * Engine.DeltaTime);
                 Distort.AnxietyOrigin = new Vector2((player.Center.X - Position.X) / 320f, (player.Center.Y - Position.Y) / 180f);

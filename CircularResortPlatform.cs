@@ -129,12 +129,12 @@ namespace Celeste.Mod.PandorasBox
 
             if (clockwise)
             {
-                this.rotationPercent -= speed / 10e6f / Engine.DeltaTime;
+                this.rotationPercent -= speed * Engine.DeltaTime / 2777.8f;
                 this.rotationPercent += 1f;
             }
             else
             {
-                this.rotationPercent += speed / 10e6f / Engine.DeltaTime;
+                this.rotationPercent += speed * Engine.DeltaTime / 2777.8f;
             }
 
             if (fallOutOfScreen)

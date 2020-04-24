@@ -165,7 +165,7 @@ namespace Celeste.Mod.PandorasBox
 
             if (player != null && player.Dead)
             {
-                Engine.TimeRate = (stop + (start - stop) * lerp);
+                Engine.TimeRate = baseTimeRate;
             }
 
             ourLastTimeRate = Engine.TimeRate;
@@ -190,7 +190,6 @@ namespace Celeste.Mod.PandorasBox
 
             AddHook();
 
-            baseTimeRate = Engine.TimeRate;
             Setup();
         }
 
@@ -204,9 +203,6 @@ namespace Celeste.Mod.PandorasBox
         public override void SceneEnd(Scene scene)
         {
             base.SceneEnd(scene);
-
-            baseTimeRate = 1f;
-            playerTimeRate = 1f;
 
             RemoveHook();
         }
@@ -295,6 +291,8 @@ namespace Celeste.Mod.PandorasBox
             {
                 On.Celeste.Player.Update += PlayerUpdateHook;
                 hookAdded = true;
+
+                baseTimeRate = Engine.TimeRate;
             }
         }
 
@@ -304,6 +302,9 @@ namespace Celeste.Mod.PandorasBox
             {
                 On.Celeste.Player.Update -= PlayerUpdateHook;
                 hookAdded = false;
+
+                baseTimeRate = 1f;
+                playerTimeRate = 1f;
             }
         }
 

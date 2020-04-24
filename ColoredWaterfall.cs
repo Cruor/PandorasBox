@@ -38,6 +38,9 @@ namespace Celeste.Mod.PandorasBox
         {
             base.Awake(scene);
 
+            Depth = -9999;
+            Tag = Tags.TransitionUpdate;
+
             Level level = Scene as Level;
             bool deep = water != null && !this.Scene.CollideCheck<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 16));
 

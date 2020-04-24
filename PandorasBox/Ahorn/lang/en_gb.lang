@@ -108,7 +108,7 @@ placements.entities.pandorasBox/laserSensor.tooltips.color=The required color to
 placements.entities.pandorasBox/laserSensor.tooltips.mode=The method of activating the sensor.\nContinous - Requires the light to stay on it for the flag to be set.\nHit Once - Sets the flag when it is hit, resets when the flag is unset from other sources.
 
 # Laser Valve
-placements.entities.pandorasBox/laserValve.tooltips.delay=How long the valve takes to let a laser through.
+placements.entities.pandorasBox/laserValve.tooltips.delay=How many frames the valve takes to let a laser through.\nCeleste runs at a constant 60 frames per second, approximately 0.01667 seconds per frame.
 placements.entities.pandorasBox/laserValve.tooltips.direction=Where the opening for the laser is.
 
 # Lamp
