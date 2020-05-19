@@ -321,7 +321,7 @@ namespace Celeste.Mod.PandorasBox
 
         public static void Load()
         {
-            AddHook();
+
         }
 
         public static void Unload()

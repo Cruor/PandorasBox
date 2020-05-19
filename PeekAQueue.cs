@@ -8,12 +8,18 @@ namespace Celeste.Mod.PandorasBox
 {
     class PeekAQueue<T>
     {
-        public int Length;
-        public int Count;
+        public int Length { get; protected set; } = 0;
+        public int Count { get; protected set; } = 0;
 
         private T[] data;
         
         public int current;
+
+        public PeekAQueue(int length)
+        {
+            Length = length;
+            data = new T[length];
+        }
 
         // This hurts my soul. Thanks .Net.
         private int mod(int n, int m)
@@ -23,9 +29,10 @@ namespace Celeste.Mod.PandorasBox
 
         private int wrapIndex(int index)
         {
-            return (mod(index, Length));
+            return mod(index, Length);
         }
 
+        // Starts at current = 1, doesn't matter since we will most likely overfill the backing array
         public void Enqueue(T item)
         {
             current = wrapIndex(current + 1);
@@ -57,11 +64,6 @@ namespace Celeste.Mod.PandorasBox
             }
 
             return res;
-        }
-
-        public PeekAQueue(int length) {
-            Length = length;
-            data = new T[length];
         }
     }
 }

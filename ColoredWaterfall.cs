@@ -68,7 +68,6 @@ namespace Celeste.Mod.PandorasBox
 
             if (water != null && Scene.OnInterval(0.3f))
             {
-                Logger.Log("PB", "Water Surface");
                 water.TopSurface.DoRipple(new Vector2(X + 4f, water.Y), 0.75f);
             }
 
