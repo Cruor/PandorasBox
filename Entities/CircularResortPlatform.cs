@@ -45,15 +45,32 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public CircularResortPlatform(Vector2 position, int width, Vector2 node, string texture, bool clockwise, float speed, bool particles, bool attachToSolid, bool renderRail, Color lineFillColor, Color lineEdgeColor) : base(position, width, false)
+        public CircularResortPlatform(Vector2 position, int width, Vector2 node, string texture, bool clockwise, float speed, bool particles, bool attachToSolid, bool renderRail, Color lineFillColor, Color lineEdgeColor, bool rotationFix) : base(position, width, false)
         {
             startCenter = node - new Vector2(width / 2f, 4);
             startPosition = position;
 
-            float num = Calc.Angle(startCenter, startPosition);
-            num = Calc.WrapAngle(num);
-            float angle = MathHelper.Lerp(4.712389f, -1.57079637f, this.rotationPercent);
-            rotationPercent = Calc.Percent(num, 4.712389f, 3.1415925f);
+            // Make sure no old maps break
+            if (rotationFix)
+            {
+                float angleRadians = Calc.Angle(startCenter, Position);
+                angleRadians = Calc.WrapAngle(angleRadians);
+                rotationPercent = Calc.Percent(angleRadians, 3.14159274f, -3.14159274f);
+
+                length = (this.Position - startCenter).Length();
+                Position = startCenter + Calc.AngleToVector(angleRadians, length);
+            }
+            else
+            {
+                float num = Calc.Angle(startCenter, startPosition);
+                num = Calc.WrapAngle(num);
+                float angle = MathHelper.Lerp(4.712389f, -1.57079637f, this.rotationPercent);
+                rotationPercent = Calc.Percent(num, 4.712389f, 3.1415925f);
+
+                length = (this.Position - startCenter).Length();
+                Position = startCenter + Calc.AngleToVector(num, length);
+            }
+
 
             this.clockwise = clockwise;
             this.speed = speed;
@@ -70,9 +87,6 @@ namespace Celeste.Mod.PandorasBox
             this.renderRail = renderRail;
             this.lineFillColor = lineFillColor;
             this.lineEdgeColor = lineEdgeColor;
-
-            length = (this.Position - startCenter).Length();
-            Position = startCenter + Calc.AngleToVector(num, length);
 
             Add(new LightOcclude(0.2f));
 
@@ -95,8 +109,9 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public CircularResortPlatform(EntityData data, Vector2 offset) : this(data.Position + offset, data.Width, data.Nodes[0] + offset, data.Attr("texture", ""), data.Bool("clockwise", true), data.Float("speed", 1500f), data.Bool("particles", true), data.Bool("attachToSolid", true), data.Bool("renderRail", true), ColorHelper.GetColor(data.Attr("lineFillColor", "160b12")), ColorHelper.GetColor(data.Attr("lineEdgeColor", "2a1923")))
+        public CircularResortPlatform(EntityData data, Vector2 offset) : this(data.Position + offset, data.Width, data.Nodes[0] + offset, data.Attr("texture", ""), data.Bool("clockwise", true), data.Float("speed", 1500f), data.Bool("particles", true), data.Bool("attachToSolid", true), data.Bool("renderRail", true), ColorHelper.GetColor(data.Attr("lineFillColor", "160b12")), ColorHelper.GetColor(data.Attr("lineEdgeColor", "2a1923")), data.Bool("rotationFix", false))
         {
+
         }
 
         public override void Update()

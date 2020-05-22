@@ -75,6 +75,7 @@ placements.entities.pandorasBox/circularResortPlatform.tooltips.particles=If the
 placements.entities.pandorasBox/circularResortPlatform.tooltips.renderRail=If the platform rail should render.
 placements.entities.pandorasBox/circularResortPlatform.tooltips.lineEdgeColor=The rail edge color.
 placements.entities.pandorasBox/circularResortPlatform.tooltips.lineFillColor=The rail fill color.
+placements.entities.pandorasBox/circularResortPlatform.tooltips.rotationFix=Fixes initial rotation of platform.
 
 # Lever
 placements.entities.pandorasBox/lever.tooltips.flag=The flag the lever sets/unsets.
