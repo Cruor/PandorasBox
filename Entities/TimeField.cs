@@ -30,6 +30,8 @@ namespace Celeste.Mod.PandorasBox
         private float animRate;
         private bool render;
 
+        private bool respectOtherTimeRates;
+
         private bool lingering;
         private bool playerAffected;
 
@@ -48,17 +50,19 @@ namespace Celeste.Mod.PandorasBox
         {
             lerp = 0f;
 
-            start = float.Parse(data.Attr("start", "0.2"));
-            stop = float.Parse(data.Attr("stop", "1"));
+            start = data.Float("start", 0.2f);
+            stop = data.Float("stop", 1f);
 
-            startTime = float.Parse(data.Attr("stopTime", "1.0"));
-            stopTime = float.Parse(data.Attr("startTime", "3.0"));
+            startTime = data.Float("stopTime", 1.0f);
+            stopTime = data.Float("startTime", 3.0f);
 
-            animRate = float.Parse(data.Attr("animRate", "6.0"));
+            animRate = data.Float("animRate", 6.0f);
 
-            render = Boolean.Parse(data.Attr("render", "true"));
-            playerAffected = Boolean.Parse(data.Attr("playerAffected", "false"));
-            lingering = Boolean.Parse(data.Attr("lingering", "false"));
+            render = data.Bool("render", true);
+            playerAffected = data.Bool("playerAffected", false);
+            lingering = data.Bool("lingering", false);
+
+            respectOtherTimeRates = data.Bool("respectOtherTimeRates", false);
 
             String rawColor = data.Attr("color", "teal");
             tint = ColorHelper.GetColor(rawColor);
@@ -138,17 +142,19 @@ namespace Celeste.Mod.PandorasBox
             TimeField field = GetValueOrNull(lingeringTarget);
             Player player = GetValueOrNull(targetPlayer);
 
-            if ((Engine.TimeRate != ourLastTimeRate) && Engine.TimeRate > 0f)
+            bool playerInside = PlayerInside();
+
+            if (field?.respectOtherTimeRates == true && (Engine.TimeRate != ourLastTimeRate) && Engine.TimeRate > 0f)
             {
                 baseTimeRate = Engine.TimeRate;
             }
 
-            if (field == this && !PlayerInside())
+            if (field == this && !playerInside)
             {
                 Engine.TimeRate = baseTimeRate;
             }
 
-            if (field == this && PlayerInside() && targetPlayer != null && !player.Dead)
+            if (field == this && playerInside && targetPlayer != null && !player.Dead)
             {
                 // The lerp updates should be in realtime, not ingame time
                 float dt = Engine.RawDeltaTime * baseTimeRate;
@@ -305,6 +311,8 @@ namespace Celeste.Mod.PandorasBox
 
                 baseTimeRate = 1f;
                 playerTimeRate = 1f;
+
+                Engine.TimeRate = baseTimeRate;
             }
         }
 

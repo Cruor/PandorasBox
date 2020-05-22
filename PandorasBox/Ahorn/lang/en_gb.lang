@@ -13,6 +13,7 @@ placements.entities.pandorasBox/timefield.tooltips.animRate=The speed of the ani
 placements.entities.pandorasBox/timefield.tooltips.render=If the field should render at all.
 placements.entities.pandorasBox/timefield.tooltips.lingering=If the effect should last after exiting the field until a new lingering field is entered.
 placements.entities.pandorasBox/timefield.tooltips.color=The color of the particles.\nHex values can be used.
+placements.entities.pandorasBox/timefield.tooltips.respectOtherTimeRates=If the timefield should attempt to respect other time rates. This includes things like Crystal Heart and Seekers. Can cause some weird oddities in certain interactions, such as Seeker slowdown.
 
 # Shells
 placements.entities.pandorasBox/shell.tooltips.texture=What version of the shell should be used.

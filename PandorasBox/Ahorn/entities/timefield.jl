@@ -2,7 +2,7 @@ module PandorasBoxTimefield
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/timefield" Timefield(x::Integer, y::Integer, start::Number=0.2, stop::Number=1.0, stopTime::Number=1.0, startTime::Number=3.0, animRate::Number=6.0, render::Bool=true, lingering::Bool=false, color::String="Teal")
+@mapdef Entity "pandorasBox/timefield" Timefield(x::Integer, y::Integer, start::Number=0.2, stop::Number=1.0, stopTime::Number=1.0, startTime::Number=3.0, animRate::Number=6.0, render::Bool=true, lingering::Bool=false, color::String="Teal", respectOtherTimeRates::Bool=false)
 
 const placements = Ahorn.PlacementDict(
     "Timefield (Pandora's Box)" => Ahorn.EntityPlacement(
