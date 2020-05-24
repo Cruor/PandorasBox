@@ -49,7 +49,6 @@ namespace Celeste.Mod.PandorasBox
             sprite.Play("gate");
             sprite.OnLastFrame = onLastFrame;
             sprite.Rate = 0;
-            sprite.X = Collider.Width / 2f;
 
             Add(shaker = new Shaker(on: false));
 
@@ -173,7 +172,7 @@ namespace Celeste.Mod.PandorasBox
         public override void Render()
         {
             Vector2 shakerOffset = new Vector2(Math.Sign(shaker.Value.X), 0f);
-            sprite.DrawSubrect(Vector2.Zero + shakerOffset, new Rectangle(0, (int)(sprite.Height - drawingHeight), (int)sprite.Width, (int)drawingHeight));
+            sprite.DrawSubrect(shakerOffset, new Rectangle(0, (int)(sprite.Height - drawingHeight), (int)sprite.Width, (int)drawingHeight + 1));
         }
     }
 }
