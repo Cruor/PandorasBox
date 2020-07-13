@@ -69,6 +69,10 @@
     <Compile Include="Entities\LaserNoteblock.cs" />
     <Compile Include="Entities\LaserSensor.cs" />
     <Compile Include="Entities\LaserValve.cs" />
+    <Compile Include="Entities\MarioClearPipe.cs" />
+    <Compile Include="Entities\MarioClearPipeInteraction.cs" />
+    <Compile Include="Entities\MarioClearPipeSolid.cs" />
+    <Compile Include="Helpers\MarioClearPipeHelper.cs" />
     <Compile Include="Helpers\NoteHelper.cs" />
     <Compile Include="Utils\PeekAQueue.cs" />
     <Compile Include="Entities\CircularResortPlatform.cs" />

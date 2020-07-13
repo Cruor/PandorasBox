@@ -157,6 +157,7 @@ namespace Celeste.Mod.PandorasBox
             Hold.PickupCollider = new Hitbox(18f, 18f, -9, -9);
             Hold.OnPickup = new Action(OnPickup);
             Hold.OnRelease = new Action<Vector2>(OnRelease);
+            Hold.SpeedGetter = () => Speed;
 
             decorationMoving.Visible = shellMoving.Visible = false;
 
@@ -188,8 +189,10 @@ namespace Celeste.Mod.PandorasBox
 
             timeAcc += Engine.DeltaTime;
 
-            decorationMoving.Visible = shellMoving.Visible = Speed.X != 0;
-            decorationIdle.Visible = shellIdle.Visible = Speed.X == 0;
+            bool useMovingVisuals = Speed.X != 0 || Get<MarioClearPipeInteraction>()?.CurrentClearPipe != null;
+
+            decorationMoving.Visible = shellMoving.Visible = useMovingVisuals;
+            decorationIdle.Visible = shellIdle.Visible = !useMovingVisuals;
 
             if (!Hold.IsHeld)
             {
@@ -202,8 +205,7 @@ namespace Celeste.Mod.PandorasBox
                     }
                 }
 
-                Speed.Y = Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
-                Speed.Y = Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
+                Speed.Y = OnGround() ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
 
                 MoveH(Speed.X * Engine.DeltaTime, onCollideH, null);
                 MoveV(Speed.Y * Engine.DeltaTime, onCollideV, null);
@@ -316,7 +318,7 @@ namespace Celeste.Mod.PandorasBox
 
         private void OnRelease(Vector2 force)
         {
-            Speed = new Vector2(Math.Sign(force.X) * baseSpeed, baseThrowHeight);
+            Speed = new Vector2(Math.Sign(force.X) * baseSpeed, force.Y * baseThrowHeight);
             grace = graceThrow;
 
             RemoveTag(Tags.Persistent);

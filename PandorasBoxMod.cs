@@ -35,6 +35,7 @@ namespace Celeste.Mod.PandorasBox
             CloneSpawner.Load();
             WaterDrowningController.Load();
             TimeField.Load();
+            MarioClearPipe.Load();
         }
 
         public override void Unload()
@@ -42,6 +43,7 @@ namespace Celeste.Mod.PandorasBox
             CloneSpawner.Unload();
             WaterDrowningController.Unload();
             TimeField.Unload();
+            MarioClearPipe.Unload();
         }
     }
 }
