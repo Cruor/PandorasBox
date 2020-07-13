@@ -46,7 +46,7 @@ namespace Celeste.Mod.PandorasBox
         private int facing;
         private Vector2 prevLiftSpeed;
 
-        private MethodInfo springMethod;
+        private MethodInfo springMethod = typeof(Spring).GetMethod("BounceAnimate", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private double springDelay;
         private double enterDelay;
@@ -111,13 +111,8 @@ namespace Celeste.Mod.PandorasBox
         private void HitSpring(Spring spring)
         {
             if (this.springDelay == 0) {
-                if (this.springMethod == null)
-                {
-                    this.springMethod = spring.GetType().GetMethod("BounceAnimate", BindingFlags.NonPublic | BindingFlags.Instance);
-                }
-
-                this.speed.Y -= spring.Orientation.ToString().Equals("Floor") ? 240f : 140f;
-                this.speed.X += spring.Orientation.ToString().Equals("WallRight") ? -180f : (spring.Orientation.ToString().Equals("WallLeft") ? 180f : 0);
+                this.speed.Y -= spring.Orientation == Spring.Orientations.Floor ? 240f : 140f;
+                this.speed.X += spring.Orientation == Spring.Orientations.WallRight ? -180f : (spring.Orientation == Spring.Orientations.WallLeft ? 180f : 0);
 
                 this.facing = Math.Sign(this.speed.X);
 

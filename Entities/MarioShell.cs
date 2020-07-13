@@ -244,7 +244,16 @@ namespace Celeste.Mod.PandorasBox
         {
             if (!Hold.IsHeld && springGrace == 0)
             {
-                Speed.Y -= spring.Orientation.ToString().Equals("Floor") ? 240f : 140f;
+                if (spring.Orientation == Spring.Orientations.WallRight)
+                {
+                    Speed.X = -baseSpeed;
+                }
+                else if (spring.Orientation == Spring.Orientations.WallLeft)
+                {
+                    Speed.X = baseSpeed;
+                }
+
+                Speed.Y -= spring.Orientation == Spring.Orientations.Floor ? 240f : 140f;
 
                 springGrace = graceSpring;
                 springMethodInfo.Invoke(spring, null);
