@@ -8,11 +8,15 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
 
+using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
+
 // TODO - Support red boosters and feather for player?
 // TODO - Better player visuals?
 // TODO - Grabing stuff going in and out of pipes might result in teleporting grabables
 // TODO - Add clear pipe interacter to new entities if posibile
 // TODO - Disable collidable status?
+// TODO - Player enter down pipe if holding up
+// TODO - Fix jittery visuals on blocked exits
 // TODO - Attributes
 // - Can player enter
 // - Blocking off exits
@@ -41,8 +45,8 @@ namespace Celeste.Mod.PandorasBox
 
         private Vector2[] nodes;
 
-        private MarioClearPipeHelper.Direction startDirection;
-        private MarioClearPipeHelper.Direction endDirection;
+        private Direction startDirection;
+        private Direction endDirection;
         private Vector2 startDirectionVector;
         private Vector2 endDirectionVector;
 
@@ -71,11 +75,11 @@ namespace Celeste.Mod.PandorasBox
             pipeColliderDepth = data.Int("debugPipeColliderDepth", 4);
             // ----
 
-            startDirection = MarioClearPipeHelper.GetPipeExitDirection(nodes[0], nodes[1]);
-            endDirection = MarioClearPipeHelper.GetPipeExitDirection(nodes[nodes.Length - 1], nodes[nodes.Length - 2]);
+            startDirection = GetPipeExitDirection(nodes[0], nodes[1]);
+            endDirection = GetPipeExitDirection(nodes[nodes.Length - 1], nodes[nodes.Length - 2]);
 
-            startDirectionVector = MarioClearPipeHelper.GetPipeExitDirectionVector(nodes[0], nodes[1]);
-            endDirectionVector = MarioClearPipeHelper.GetPipeExitDirectionVector(nodes[nodes.Length - 1], nodes[nodes.Length - 2]);
+            startDirectionVector = GetPipeExitDirectionVector(nodes[0], nodes[1]);
+            endDirectionVector = GetPipeExitDirectionVector(nodes[nodes.Length - 1], nodes[nodes.Length - 2]);
 
             startCollider = getPipeCollider(Vector2.Zero, startDirection, pipeWidth, pipeColliderWidth, pipeColliderDepth);
             endCollider = getPipeCollider(new Vector2(nodes.Last().X - nodes.First().X, nodes.Last().Y - nodes.First().Y), endDirection, pipeWidth, pipeColliderWidth, pipeColliderDepth);
@@ -117,15 +121,15 @@ namespace Celeste.Mod.PandorasBox
             nodes = newNodes.ToArray();
         }
 
-        private Hitbox getPipeCollider(Vector2 position, MarioClearPipeHelper.Direction exitDireciton, int pipeWidth, int pipeColliderWidth, int colliderDepth)
+        private Hitbox getPipeCollider(Vector2 position, Direction exitDireciton, int pipeWidth, int pipeColliderWidth, int colliderDepth)
         {
             // Weird offset on Right/Down facing pipes with non multiples of 16 pipe width (8, 24, etc)
             switch (exitDireciton)
             {
-                case MarioClearPipeHelper.Direction.Up:
+                case Direction.Up:
                     return new Hitbox(pipeColliderWidth, colliderDepth, position.X - pipeColliderWidth / 2, position.Y - colliderDepth);
 
-                case MarioClearPipeHelper.Direction.Right:
+                case Direction.Right:
                     if (pipeWidth / 8 % 2 == 1)
                     {
                         return new Hitbox(colliderDepth, pipeColliderWidth, position.X - 4, position.Y - pipeColliderWidth / 2);
@@ -135,7 +139,7 @@ namespace Celeste.Mod.PandorasBox
                         return new Hitbox(colliderDepth, pipeColliderWidth, position.X, position.Y - pipeColliderWidth / 2);
                     }
 
-                case MarioClearPipeHelper.Direction.Down:
+                case Direction.Down:
                     if (pipeWidth / 8 % 2 == 1)
                     {
                         return new Hitbox(pipeColliderWidth, colliderDepth, position.X - pipeColliderWidth / 2, position.Y - 4);
@@ -145,7 +149,7 @@ namespace Celeste.Mod.PandorasBox
                         return new Hitbox(pipeColliderWidth, colliderDepth, position.X - pipeColliderWidth / 2, position.Y);
                     }
 
-                case MarioClearPipeHelper.Direction.Left:
+                case Direction.Left:
                     return new Hitbox(colliderDepth, pipeColliderWidth, position.X - colliderDepth, position.Y - pipeColliderWidth / 2);
 
                 default:
@@ -183,7 +187,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private static bool canPlayerDashIntoPipe(Player player, MarioClearPipeHelper.Direction pipeDirection)
+        private static bool canPlayerDashIntoPipe(Player player, Direction pipeDirection)
         {
             if ((Input.Dash.Pressed && player.CanDash && player.Holding == null) || player.DashAttacking)
             {
@@ -191,16 +195,16 @@ namespace Celeste.Mod.PandorasBox
 
                 switch (pipeDirection)
                 {
-                    case MarioClearPipeHelper.Direction.Up:
+                    case Direction.Up:
                         return dashDir.Y > 0;
 
-                    case MarioClearPipeHelper.Direction.Right:
+                    case Direction.Right:
                         return dashDir.X < 0;
 
-                    case MarioClearPipeHelper.Direction.Down:
+                    case Direction.Down:
                         return dashDir.Y < 0;
 
-                    case MarioClearPipeHelper.Direction.Left:
+                    case Direction.Left:
                         return dashDir.X > 0;
 
                     default:
@@ -214,18 +218,18 @@ namespace Celeste.Mod.PandorasBox
         // TODO - Cleanup and make more generic 
         private IEnumerator pipeMovement(Entity entity, bool fromStart, bool canBounceBack=true, Vector2? forcedStartPosition=null)
         {
-            MarioClearPipeInteraction interaction = MarioClearPipeHelper.GetClearPipeInteraction(entity);
+            MarioClearPipeInteraction interaction = GetClearPipeInteraction(entity);
 
             int startIndex = fromStart ? 0 : nodes.Length - 1;
             int lastIndex = fromStart ? nodes.Length - 1 : 0;
             int direction = fromStart ? 1 : -1;
 
-            MarioClearPipeHelper.Direction transportStartDirection = fromStart ? startDirection : endDirection;
-            MarioClearPipeHelper.Direction transportEndDirection = fromStart ? endDirection : startDirection;
+            Direction transportStartDirection = fromStart ? startDirection : endDirection;
+            Direction transportEndDirection = fromStart ? endDirection : startDirection;
 
-            if (forcedStartPosition != null || MarioClearPipeHelper.CanTransportEntity(entity, transportStartDirection))
+            if (forcedStartPosition != null || CanTransportEntity(entity, transportStartDirection))
             {
-                MarioClearPipeHelper.CurrentlyTransportedEntities.Add(entity);
+                CurrentlyTransportedEntities.Add(entity);
                 interaction.CurrentClearPipe = this;
                 interaction?.OnPipeEnter?.Invoke(entity, transportStartDirection);
 
@@ -248,7 +252,7 @@ namespace Celeste.Mod.PandorasBox
                     if (!interaction.CanStayInPipe(entity))
                     {
                         interaction.CurrentClearPipe = null;
-                        MarioClearPipeHelper.CurrentlyTransportedEntities.Remove(entity);
+                        CurrentlyTransportedEntities.Remove(entity);
 
                         yield break;
                     }
@@ -275,7 +279,7 @@ namespace Celeste.Mod.PandorasBox
                         if (!interaction.CanStayInPipe(entity))
                         {
                             interaction.CurrentClearPipe = null;
-                            MarioClearPipeHelper.CurrentlyTransportedEntities.Remove(entity);
+                            CurrentlyTransportedEntities.Remove(entity);
 
                             yield break;
                         }
@@ -294,7 +298,7 @@ namespace Celeste.Mod.PandorasBox
                 // Check if we can exit the pipe
                 // If we can exit, visually update these steps
                 // Otherwise bounce back early
-                if (MarioClearPipeHelper.CanExitPipe(entity, movementDirection, TransportSpeed))
+                if (CanExitPipe(entity, movementDirection, TransportSpeed))
                 {
                     Vector2 previousPosition = entity.Position;
                     Vector2 currentPosition = entity.Position;
@@ -353,9 +357,9 @@ namespace Celeste.Mod.PandorasBox
                     {
                         Logger.Log("PB", $"Pipe blocked for {entity}");
 
-                        interaction?.OnPipeBlocked?.Invoke(entity, MarioClearPipeHelper.Direction.None);
+                        interaction?.OnPipeBlocked?.Invoke(entity, Direction.None);
                         interaction.CurrentClearPipe = null;
-                        MarioClearPipeHelper.CurrentlyTransportedEntities.Remove(entity);
+                        CurrentlyTransportedEntities.Remove(entity);
 
                         // Fix float positions, causes weird collision bugs for entities
                         entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
@@ -365,7 +369,7 @@ namespace Celeste.Mod.PandorasBox
                 {
                     interaction.OnPipeExit?.Invoke(entity, transportEndDirection);
                     interaction.CurrentClearPipe = null;
-                    MarioClearPipeHelper.CurrentlyTransportedEntities.Remove(entity);
+                    CurrentlyTransportedEntities.Remove(entity);
 
                     // Fix float positions, causes weird collision bugs for entities
                     entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
@@ -382,11 +386,11 @@ namespace Celeste.Mod.PandorasBox
                     continue;
                 }
 
-                if (entity.Collider.Collide(startCollider) && MarioClearPipeHelper.CanTransportEntity(entity, startDirection))
+                if (entity.Collider.Collide(startCollider) && CanTransportEntity(entity, startDirection))
                 {
                     Add(new Coroutine(pipeMovement(entity, true)));
                 }
-                else if (entity.Collider.Collide(endCollider) && MarioClearPipeHelper.CanTransportEntity(entity, endDirection))
+                else if (entity.Collider.Collide(endCollider) && CanTransportEntity(entity, endDirection))
                 {
                     Add(new Coroutine(pipeMovement(entity, false)));
                 }
@@ -397,7 +401,7 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Awake(Scene scene)
         {
-            MarioClearPipeHelper.AddClearPipeInteractionToHoldables(scene);
+            AddClearPipeInteractionToHoldables(scene);
 
             if (hasPipeSolids)
             {
@@ -407,9 +411,10 @@ namespace Celeste.Mod.PandorasBox
             base.Awake(scene);
         }
 
+        // TODO - Move
         private static void Player_Added(On.Celeste.Player.orig_Added orig, Player self, Scene scene)
         {
-            if (!MarioClearPipeHelper.HasClearPipeInteraction(self))
+            if (!HasClearPipeInteraction(self))
             {
                 MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(new Vector2(0f, 10f));
 
@@ -457,11 +462,11 @@ namespace Celeste.Mod.PandorasBox
 
                         switch (direction)
                         {
-                            case MarioClearPipeHelper.Direction.Up:
+                            case Direction.Up:
                                 player.Speed = new Vector2(0f, -transportSpeed);
                                 break;
 
-                            case MarioClearPipeHelper.Direction.Right:
+                            case Direction.Right:
                                 if (Input.MoveX.Value >= 0)
                                 {
                                     player.Speed = new Vector2(transportSpeed, 0f);
@@ -469,11 +474,11 @@ namespace Celeste.Mod.PandorasBox
                                 
                                 break;
 
-                            case MarioClearPipeHelper.Direction.Down:
+                            case Direction.Down:
                                 player.Speed = new Vector2(0f, transportSpeed);
                                 break;
 
-                            case MarioClearPipeHelper.Direction.Left:
+                            case Direction.Left:
                                 if (Input.MoveX.Value <= 0)
                                 {
                                     player.Speed = new Vector2(-transportSpeed, 0f);
@@ -494,8 +499,8 @@ namespace Celeste.Mod.PandorasBox
                     if (player.OnGround())
                     {
                         // If the player is visually ducking or pushing up against a solid
-                        bool canDuckInto = player.Sprite.CurrentAnimationID == "duck" && direction == MarioClearPipeHelper.Direction.Up;
-                        bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == MarioClearPipeHelper.Direction.Left || direction == MarioClearPipeHelper.Direction.Right);
+                        bool canDuckInto = player.Sprite.CurrentAnimationID == "duck" && direction == Direction.Up;
+                        bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == Direction.Left || direction == Direction.Right);
 
                         if (canDuckInto || canPushInto)
                         {

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
 
+using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
+
 namespace Celeste.Mod.PandorasBox
 {
     [Tracked(true)]
@@ -142,14 +144,14 @@ namespace Celeste.Mod.PandorasBox
             pipeTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/pipe"];
 
             Depth = 10;
-            SurfaceSoundIndex = surfaceSound >= 0 ? surfaceSound : 32;
+            SurfaceSoundIndex = surfaceSound >= 0 ? surfaceSound : 11; // 11 = Deactivated Space Jam, 
 
             addPipeVisuals();
         }
 
         public static MarioClearPipeSolid FromNodes(Vector2 startNode, Vector2 endNode, Vector2 nextNode, bool startNodeExit, bool endNodeExit, float pipeWidth, string texturePath, int surfaceSound)
         {
-            MarioClearPipeHelper.Direction direction = MarioClearPipeHelper.GetPipeExitDirection(endNode, startNode);
+            Direction direction = GetPipeExitDirection(endNode, startNode);
 
             float length = (endNode - startNode).Length();
 
@@ -174,25 +176,25 @@ namespace Celeste.Mod.PandorasBox
 
             switch (direction)
             {
-                case MarioClearPipeHelper.Direction.Up:
+                case Direction.Up:
                     position = new Vector2(endNode.X - halfPipeWidth, endNode.Y - (endNodeExit ? 0 : halfPipeWidth));
                     width = pipeWidth;
                     height = length;
                     break;
 
-                case MarioClearPipeHelper.Direction.Right:
+                case Direction.Right:
                     position = new Vector2(startNode.X + (startNodeExit ? 0 : halfPipeWidth), startNode.Y - halfPipeWidth);
                     width = length;
                     height = pipeWidth;
                     break;
 
-                case MarioClearPipeHelper.Direction.Down:
+                case Direction.Down:
                     position = new Vector2(startNode.X - halfPipeWidth, startNode.Y + (startNodeExit ? 0 : halfPipeWidth));
                     width = pipeWidth;
                     height = length;
                     break;
 
-                case MarioClearPipeHelper.Direction.Left:
+                case Direction.Left:
                     position = new Vector2(endNode.X - (endNodeExit ? 0 : halfPipeWidth), endNode.Y - halfPipeWidth);
                     width = length;
                     height = pipeWidth;
@@ -205,12 +207,12 @@ namespace Celeste.Mod.PandorasBox
             // Weird offset on non multiple of 16 widths (8, 24, etc)
             if (pipeWidth / 8 % 2 == 1)
             {
-                if (endNodeExit && direction == MarioClearPipeHelper.Direction.Right || startNodeExit && direction == MarioClearPipeHelper.Direction.Left)
+                if (endNodeExit && direction == Direction.Right || startNodeExit && direction == Direction.Left)
                 {
                     width -= 4f;
                     length -= 4f;
                 }
-                else if (startNodeExit && direction == MarioClearPipeHelper.Direction.Up || endNodeExit && direction == MarioClearPipeHelper.Direction.Down)
+                else if (startNodeExit && direction == Direction.Up || endNodeExit && direction == Direction.Down)
                 {
                     height -= 4f;
                     length -= 4f;
@@ -220,25 +222,25 @@ namespace Celeste.Mod.PandorasBox
             return new MarioClearPipeSolid(position, width, height, length, pipeWidth, texturePath, surfaceSound, startNode, endNode, nextNode, startNodeExit, endNodeExit);
         }
 
-        private static string getCornerType(MarioClearPipeHelper.Direction direction, MarioClearPipeHelper.Direction nextDirection)
+        private static string getCornerType(Direction direction, Direction nextDirection)
         {
-            if (direction == MarioClearPipeHelper.Direction.Right && nextDirection == MarioClearPipeHelper.Direction.Up ||
-                direction == MarioClearPipeHelper.Direction.Down && nextDirection == MarioClearPipeHelper.Direction.Left)
+            if (direction == Direction.Right && nextDirection == Direction.Up ||
+                direction == Direction.Down && nextDirection == Direction.Left)
             {
                 return "upLeft";
             } 
-            else if (direction == MarioClearPipeHelper.Direction.Down && nextDirection == MarioClearPipeHelper.Direction.Right ||
-                direction == MarioClearPipeHelper.Direction.Left && nextDirection == MarioClearPipeHelper.Direction.Up)
+            else if (direction == Direction.Down && nextDirection == Direction.Right ||
+                direction == Direction.Left && nextDirection == Direction.Up)
             {
                 return "upRight";
             }
-            else if (direction == MarioClearPipeHelper.Direction.Left && nextDirection == MarioClearPipeHelper.Direction.Down ||
-                direction == MarioClearPipeHelper.Direction.Up && nextDirection == MarioClearPipeHelper.Direction.Right)
+            else if (direction == Direction.Left && nextDirection == Direction.Down ||
+                direction == Direction.Up && nextDirection == Direction.Right)
             {
                 return "downRight";
             }
-            else if (direction == MarioClearPipeHelper.Direction.Up && nextDirection == MarioClearPipeHelper.Direction.Left ||
-                direction == MarioClearPipeHelper.Direction.Right && nextDirection == MarioClearPipeHelper.Direction.Down)
+            else if (direction == Direction.Up && nextDirection == Direction.Left ||
+                direction == Direction.Right && nextDirection == Direction.Down)
             {
                 return "downLeft";
             }
@@ -248,7 +250,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private void addPipeCornerVisuals(MarioClearPipeHelper.Direction direction, MarioClearPipeHelper.Direction nextDirection)
+        private void addPipeCornerVisuals(Direction direction, Direction nextDirection)
         {
             if (length < pipeWidth)
             {
@@ -295,11 +297,11 @@ namespace Celeste.Mod.PandorasBox
                 horizontalWallY = 0;
             }
 
-            if (direction == MarioClearPipeHelper.Direction.Right)
+            if (direction == Direction.Right)
             {
                 offsetX = length - pipeWidth;
             }
-            else if (direction == MarioClearPipeHelper.Direction.Down)
+            else if (direction == Direction.Down)
             {
                 offsetY = length - pipeWidth;
             }
@@ -345,14 +347,14 @@ namespace Celeste.Mod.PandorasBox
 
         private void addPipeVisuals()
         {
-            MarioClearPipeHelper.Direction direction = MarioClearPipeHelper.GetPipeExitDirection(endNode, startNode);
-            MarioClearPipeHelper.Direction nextDirection = MarioClearPipeHelper.GetPipeExitDirection(nextNode, endNode);
+            Direction direction = GetPipeExitDirection(endNode, startNode);
+            Direction nextDirection = GetPipeExitDirection(nextNode, endNode);
 
-            bool horizontalPipe = direction == MarioClearPipeHelper.Direction.Right || direction == MarioClearPipeHelper.Direction.Left;
-            bool verticalPipe = direction == MarioClearPipeHelper.Direction.Down || direction == MarioClearPipeHelper.Direction.Up;
+            bool horizontalPipe = direction == Direction.Right || direction == Direction.Left;
+            bool verticalPipe = direction == Direction.Down || direction == Direction.Up;
 
             float straightLength = !endNodeExit ? length - pipeWidth : length;
-            float offset = !endNodeExit && (direction == MarioClearPipeHelper.Direction.Up || direction == MarioClearPipeHelper.Direction.Left) ? pipeWidth : 0;
+            float offset = !endNodeExit && (direction == Direction.Up || direction == Direction.Left) ? pipeWidth : 0;
 
             if (horizontalPipe)
             {
@@ -364,11 +366,11 @@ namespace Celeste.Mod.PandorasBox
                     Image bottom;
                     MTexture middleTexture;
 
-                    if (direction == MarioClearPipeHelper.Direction.Left && x == straightLength - 8 && startNodeExit || direction == MarioClearPipeHelper.Direction.Right && x == straightLength - 8 && endNodeExit)
+                    if (direction == Direction.Left && x == straightLength - 8 && startNodeExit || direction == Direction.Right && x == straightLength - 8 && endNodeExit)
                     {
                         columnType = "rightExit";
                     }
-                    else if (direction == MarioClearPipeHelper.Direction.Left && x == 0 && endNodeExit || direction == MarioClearPipeHelper.Direction.Right && x == 0 && startNodeExit)
+                    else if (direction == Direction.Left && x == 0 && endNodeExit || direction == Direction.Right && x == 0 && startNodeExit)
                     {
                         columnType = "leftExit";
                     }
@@ -425,11 +427,11 @@ namespace Celeste.Mod.PandorasBox
                     Image right;
                     MTexture middleTexture;
 
-                    if (direction == MarioClearPipeHelper.Direction.Up && y == straightLength - 8 && startNodeExit || direction == MarioClearPipeHelper.Direction.Down && y == straightLength - 8 && endNodeExit)
+                    if (direction == Direction.Up && y == straightLength - 8 && startNodeExit || direction == Direction.Down && y == straightLength - 8 && endNodeExit)
                     {
                         rowType = "downExit";
                     }
-                    else if (direction == MarioClearPipeHelper.Direction.Up && y == 0 && endNodeExit || direction == MarioClearPipeHelper.Direction.Down && y == 0 && startNodeExit)
+                    else if (direction == Direction.Up && y == 0 && endNodeExit || direction == Direction.Down && y == 0 && startNodeExit)
                     {
                         rowType = "upExit";
                     }
