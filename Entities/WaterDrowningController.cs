@@ -85,7 +85,8 @@ namespace Celeste.Mod.PandorasBox
 
         private static void Player_OnRender(On.Celeste.Player.orig_Render orig, Player self)
         {
-            WaterDrowningController controller = self.Scene.Tracker.GetEntity<WaterDrowningController>();
+            // Entity is not tracked during code hotswaps, prevents crashes
+            WaterDrowningController controller = self.Scene.Tracker.IsEntityTracked<WaterDrowningController>() ? self.Scene.Tracker.GetEntity<WaterDrowningController>() : null;
 
             if (controller != null && controller.WaterDuration > 0)
             {
