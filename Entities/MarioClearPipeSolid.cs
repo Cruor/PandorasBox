@@ -13,8 +13,6 @@ namespace Celeste.Mod.PandorasBox
     [Tracked(true)]
     public class MarioClearPipeSolid : Solid
     {
-        private Color color;
-
         private Vector2 startNode;
         private Vector2 endNode;
         private Vector2 nextNode;
@@ -26,6 +24,106 @@ namespace Celeste.Mod.PandorasBox
         private float pipeWidth;
 
         private string texturePath;
+        private MTexture pipeTexture;
+
+        public static Dictionary<string, Dictionary<string, Vector2>> ExitTexturesQuads = new Dictionary<string, Dictionary<string, Vector2>>()
+        {
+            {
+                "up", new Dictionary<string, Vector2>() {
+                    {"left", new Vector2(0, 3)},
+                    {"middle", new Vector2(1, 3)},
+                    {"right", new Vector2(2, 3)},
+                }
+            },
+            {
+                "down", new Dictionary<string, Vector2>() {
+                    {"left", new Vector2(0, 5)},
+                    {"middle", new Vector2(1, 5)},
+                    {"right", new Vector2(2, 5)},
+                }
+            },
+            {
+                "left", new Dictionary<string, Vector2>() {
+                    {"top", new Vector2(0, 0)},
+                    {"middle", new Vector2(0, 1)},
+                    {"bottom", new Vector2(0, 2)},
+                }
+            },
+            {
+                "right", new Dictionary<string, Vector2>() {
+                    {"top", new Vector2(2, 0)},
+                    {"middle", new Vector2(2, 1)},
+                    {"bottom", new Vector2(2, 2)},
+                }
+            },
+        };
+
+        public static Dictionary<string, Dictionary<string, Vector2>> StraightTextureQuads = new Dictionary<string, Dictionary<string, Vector2>>()
+        {
+            {
+                "vertical", new Dictionary<string, Vector2>() {
+                    {"left", new Vector2(0, 4)},
+                    {"middle", new Vector2(1, 4)},
+                    {"right", new Vector2(2, 4)},
+                }
+            },
+            {
+                "horizontal", new Dictionary<string, Vector2>() {
+                    {"top", new Vector2(1, 0)},
+                    {"middle", new Vector2(1, 1)},
+                    {"bottom", new Vector2(1, 2)},
+                }
+            },
+        };
+
+        public static Dictionary<string, Dictionary<string, Vector2>> CornerTextureQuads = new Dictionary<string, Dictionary<string, Vector2>>()
+        {
+            {
+                "upLeft", new Dictionary<string, Vector2>() {
+                    {"inner", new Vector2(3, 0)},
+                    {"outer", new Vector2(5, 2)},
+                    {"horizontal_middle", new Vector2(3, 1)},
+                    {"horizontal_wall", new Vector2(3, 2)},
+                    {"vertical_middle", new Vector2(4, 0)},
+                    {"vertical_wall", new Vector2(5, 0)},
+                }
+            },
+            {
+                "upRight", new Dictionary<string, Vector2>() {
+                    {"inner", new Vector2(8, 0)},
+                    {"outer", new Vector2(6, 2)},
+                    {"horizontal_middle", new Vector2(8, 1)},
+                    {"horizontal_wall", new Vector2(8, 2)},
+                    {"vertical_middle", new Vector2(7, 0)},
+                    {"vertical_wall", new Vector2(6, 0)},
+                }
+            },
+            {
+                "downRight", new Dictionary<string, Vector2>() {
+                    {"inner", new Vector2(8, 5)},
+                    {"outer", new Vector2(6, 3)},
+                    {"horizontal_middle", new Vector2(8, 4)},
+                    {"horizontal_wall", new Vector2(8, 3)},
+                    {"vertical_middle", new Vector2(7, 5)},
+                    {"vertical_wall", new Vector2(6, 5)},
+                }
+            },
+            {
+                "downLeft", new Dictionary<string, Vector2>() {
+                    {"inner", new Vector2(3, 5)},
+                    {"outer", new Vector2(5, 3)},
+                    {"horizontal_middle", new Vector2(3, 4)},
+                    {"horizontal_wall", new Vector2(3, 3)},
+                    {"vertical_middle", new Vector2(4, 5)},
+                    {"vertical_wall", new Vector2(5, 5)},
+                }
+            },
+        };
+
+        public static MTexture GetTextureQuad(MTexture texture, Vector2 position)
+        {
+            return texture.GetSubtexture((int)position.X * 8, (int)position.Y * 8, 8, 8);
+        }
 
         public MarioClearPipeSolid(Vector2 position, float width, float height, float length, float pipeWidth, string texturePath, int surfaceSound, Vector2 startNode, Vector2 endNode, Vector2 nextNode, bool startNodeExit, bool endNodeExit) : base(position, width, height, true)
         {
@@ -40,6 +138,8 @@ namespace Celeste.Mod.PandorasBox
             this.pipeWidth = pipeWidth;
 
             this.texturePath = texturePath;
+
+            pipeTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/pipe"];
 
             Depth = 10;
             SurfaceSoundIndex = surfaceSound >= 0 ? surfaceSound : 32;
@@ -162,11 +262,11 @@ namespace Celeste.Mod.PandorasBox
                 return;
             }
 
-            MTexture nonWallTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_horizontal_middle"]; // TODO - Better texture?
-            MTexture innerCornerTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/corner_{cornerType}_inner"];
-            MTexture outerCornerTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/corner_{cornerType}_outer"];
-            MTexture verticalWallTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/corner_{cornerType}_vertical_wall"];
-            MTexture horizontalWallTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/corner_{cornerType}_horizontal_wall"];
+            MTexture nonWallTexture = GetTextureQuad(pipeTexture, StraightTextureQuads["horizontal"]["middle"]); // TODO - Better texture?
+            MTexture innerCornerTexture = GetTextureQuad(pipeTexture, CornerTextureQuads[cornerType]["inner"]);
+            MTexture outerCornerTexture = GetTextureQuad(pipeTexture, CornerTextureQuads[cornerType]["outer"]);
+            MTexture verticalWallTexture = GetTextureQuad(pipeTexture, CornerTextureQuads[cornerType]["vertical_wall"]);
+            MTexture horizontalWallTexture = GetTextureQuad(pipeTexture, CornerTextureQuads[cornerType]["horizontal_wall"]);
 
             float verticalWallX = -1;
             float horizontalWallY = -1;
@@ -275,24 +375,24 @@ namespace Celeste.Mod.PandorasBox
 
                     if (columnType == "rightExit")
                     {
-                        top = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_right_top"]);
-                        bottom = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_right_bottom"]);
+                        top = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["right"]["top"]));
+                        bottom = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["right"]["bottom"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_right_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, ExitTexturesQuads["right"]["middle"]);
                     }
                     else if (columnType == "leftExit")
                     {
-                        top = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_left_top"]);
-                        bottom = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_left_bottom"]);
+                        top = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["left"]["top"]));
+                        bottom = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["left"]["bottom"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_left_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, ExitTexturesQuads["left"]["middle"]);
                     }
                     else
                     {
-                        top = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_horizontal_top"]);
-                        bottom = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_horizontal_bottom"]);
+                        top = new Image(GetTextureQuad(pipeTexture, StraightTextureQuads["horizontal"]["top"]));
+                        bottom = new Image(GetTextureQuad(pipeTexture, StraightTextureQuads["horizontal"]["bottom"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_horizontal_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, StraightTextureQuads["horizontal"]["middle"]);
                     }
 
                     top.X = x + offset;
@@ -336,24 +436,24 @@ namespace Celeste.Mod.PandorasBox
 
                     if (rowType == "upExit")
                     {
-                        left = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_up_left"]);
-                        right = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_up_right"]);
+                        left = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["up"]["left"]));
+                        right = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["up"]["right"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_up_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, ExitTexturesQuads["up"]["middle"]);
                     }
                     else if (rowType == "downExit")
                     {
-                        left = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_down_left"]);
-                        right = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_down_right"]);
+                        left = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["down"]["left"]));
+                        right = new Image(GetTextureQuad(pipeTexture, ExitTexturesQuads["down"]["right"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/exit_down_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, ExitTexturesQuads["down"]["middle"]);
                     }
                     else
                     {
-                        left = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_vertical_left"]);
-                        right = new Image(GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_vertical_right"]);
+                        left = new Image(GetTextureQuad(pipeTexture, StraightTextureQuads["vertical"]["left"]));
+                        right = new Image(GetTextureQuad(pipeTexture, StraightTextureQuads["vertical"]["right"]));
 
-                        middleTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/straight_vertical_middle"];
+                        middleTexture = GetTextureQuad(pipeTexture, StraightTextureQuads["vertical"]["middle"]);
                     }
 
                     left.X = 0;
