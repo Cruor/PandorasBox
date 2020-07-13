@@ -17,11 +17,15 @@ using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 // TODO - Disable collidable status?
 // TODO - Player enter down pipe if holding up
 // TODO - Fix jittery visuals on blocked exits
+// TODO - Move all player pipe interaction away
+// - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
 // - Can player enter
 // - Blocking off exits
 // - Transport speed?
 // - Launch power?
+// - Force dash entry?
+// - Disable dash entry?
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -434,7 +438,11 @@ namespace Celeste.Mod.PandorasBox
 
                     if (player != null)
                     {
-                        player.StateMachine.State = Player.StDummy;
+                        if (player.StateMachine.State != Player.StRedDash)
+                        {
+                            player.StateMachine.State = Player.StDummy;
+                        }
+                        
                         player.StateMachine.Locked = true;
                         player.DummyGravity = false;
                         player.DummyAutoAnimate = false;
@@ -455,10 +463,14 @@ namespace Celeste.Mod.PandorasBox
                         float transportSpeed = playerInteraction.CurrentClearPipe.TransportSpeed;
 
                         player.StateMachine.Locked = false;
-                        player.StateMachine.State = Player.StNormal;
                         player.DummyGravity = true;
                         player.DummyAutoAnimate = true;
                         player.ForceCameraUpdate = false;
+
+                        if (player.StateMachine.State != Player.StRedDash)
+                        {
+                            player.StateMachine.State = Player.StNormal;
+                        }
 
                         switch (direction)
                         {
@@ -490,6 +502,11 @@ namespace Celeste.Mod.PandorasBox
                                 player.Speed = Vector2.Zero;
                                 break;
                         }
+
+                        if (player.StateMachine.State == Player.StRedDash)
+                        {
+                            player.DashDir = player.Speed.SafeNormalize();
+                        }
                     }
                 };
 
@@ -503,6 +520,14 @@ namespace Celeste.Mod.PandorasBox
                         bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == Direction.Left || direction == Direction.Right);
 
                         if (canDuckInto || canPushInto)
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        // Player holds up near a downwards facing pipe
+                        if (Input.MoveY < 0 && direction == Direction.Down && player.Speed.Y < 0)
                         {
                             return true;
                         }
