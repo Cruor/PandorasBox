@@ -10,12 +10,10 @@ using Celeste.Mod.Entities;
 
 using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 
-// TODO - Support red boosters and feather for player?
 // TODO - Better player visuals?
 // TODO - Grabing stuff going in and out of pipes might result in teleporting grabables
 // TODO - Add clear pipe interacter to new entities if posibile
 // TODO - Disable collidable status?
-// TODO - Player enter down pipe if holding up
 // TODO - Fix jittery visuals on blocked exits
 // TODO - Move all player pipe interaction away
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
@@ -359,8 +357,6 @@ namespace Celeste.Mod.PandorasBox
                     }
                     else
                     {
-                        Logger.Log("PB", $"Pipe blocked for {entity}");
-
                         interaction?.OnPipeBlocked?.Invoke(entity, Direction.None);
                         interaction.CurrentClearPipe = null;
                         CurrentlyTransportedEntities.Remove(entity);

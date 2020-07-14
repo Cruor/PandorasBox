@@ -29,8 +29,12 @@ namespace Celeste.Mod.PandorasBox
 
             if (actor != null)
             {
-                // Do nothing, the actor will attempt to squish itself out
-                // TODO - Manually trigger squeeze here?
+                // Attempt to force a squish by moving the colliding solid by 0 pixels
+                Solid solid = actor.CollideFirst<Solid>(actor.Position);
+                if (solid != null)
+                {
+                    solid.MoveHExact(0);
+                }
             }
             else
             {
