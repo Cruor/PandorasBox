@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Celeste;
@@ -474,11 +474,11 @@ namespace Celeste.Mod.PandorasBox
                                 break;
 
                             case Direction.Right:
-                                if (Input.MoveX.Value >= 0)
+                                if (Input.MoveX.Value >= 0 || !Input.Grab.Check)
                                 {
                                     player.Speed = new Vector2(transportSpeed, 0f);
                                 }
-                                
+
                                 break;
 
                             case Direction.Down:
@@ -486,11 +486,11 @@ namespace Celeste.Mod.PandorasBox
                                 break;
 
                             case Direction.Left:
-                                if (Input.MoveX.Value <= 0)
+                                if (Input.MoveX.Value <= 0 || !Input.Grab.Check)
                                 {
                                     player.Speed = new Vector2(-transportSpeed, 0f);
                                 }
-                                
+
                                 break;
 
                             default:
