@@ -23,7 +23,7 @@ namespace Celeste.Mod.PandorasBox
 
         public static HashSet<Entity> CurrentlyTransportedEntities = new HashSet<Entity>();
 
-        public static void HoldableOnPipeBlocked(Entity entity, Direction direction)
+        public static void HoldableOnPipeBlocked(Entity entity, MarioClearPipeInteraction interaction)
         {
             Actor actor = entity as Actor;
 
@@ -42,7 +42,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public static void HoldableOnPipeEnter(Entity entity, Direction direction)
+        public static void HoldableOnPipeEnter(Entity entity, MarioClearPipeInteraction interaction)
         {
             Holdable holdable = entity?.Get<Holdable>();
 
@@ -53,7 +53,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public static void HoldableOnPipeExit(Entity entity, Direction direction)
+        public static void HoldableOnPipeExit(Entity entity, MarioClearPipeInteraction interaction)
         {
             Holdable holdable = entity?.Get<Holdable>();
 
@@ -61,7 +61,7 @@ namespace Celeste.Mod.PandorasBox
             {
                 Vector2 speed = Vector2.Zero;
 
-                switch (direction)
+                switch (interaction.Direction)
                 {
                     case Direction.Left:
                         speed = new Vector2(-1.0f, 0.1f);
@@ -117,21 +117,19 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
-        public static bool HoldableCanStayInPipe(Entity entity)
+        public static void HoldableOnPipeUpdate(Entity entity, MarioClearPipeInteraction interaction)
         {
             Holdable holdable = entity?.Get<Holdable>();
 
-            if (holdable != null)
+            if (holdable != null && holdable.IsHeld)
             {
-                return !holdable.IsHeld;
+                interaction.ExitEarly = true;
             }
-
-            return true;
         }
 
         public static Vector2 GetPipeExitDirectionVector(Vector2 exit, Vector2 previous)
         {
-            return (previous - exit).SafeNormalize();
+            return (exit - previous).SafeNormalize();
         }
 
         public static Direction GetPipeExitDirection(Vector2 exit, Vector2 previous)
@@ -227,9 +225,9 @@ namespace Celeste.Mod.PandorasBox
                     interaction.OnPipeBlocked = MarioClearPipeHelper.HoldableOnPipeBlocked;
                     interaction.OnPipeEnter = MarioClearPipeHelper.HoldableOnPipeEnter;
                     interaction.OnPipeExit = MarioClearPipeHelper.HoldableOnPipeExit;
+                    interaction.OnPipeUpdate = MarioClearPipeHelper.HoldableOnPipeUpdate;
 
                     interaction.CanEnterPipe = MarioClearPipeHelper.HoldableCanEnterPipe;
-                    interaction.CanStayInPipe = MarioClearPipeHelper.HoldableCanStayInPipe;
 
                     entity.Add(interaction);
                 }

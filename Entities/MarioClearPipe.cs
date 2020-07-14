@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Celeste;
@@ -32,7 +32,7 @@ namespace Celeste.Mod.PandorasBox
     {
         // Transport speed Per second
         // TODO - More publics?
-        public float TransportSpeed = 175f;
+        public float TransportSpeed { get; protected set; } = 175f;
         private float transportSpeedEnterMultiplier = 0.75f;
 
         private int pipeWidth = 32;
@@ -216,6 +216,92 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
+        private IEnumerator moveBetweenNodes(Entity entity, MarioClearPipeInteraction interaction, Vector2 from, Vector2 to, float? travelSpeed=null, bool? lerpPipeOffset=null)
+        {
+            interaction.Distance = (from - to).Length();
+
+            interaction.DirectionVector = GetPipeExitDirectionVector(to, from);
+            interaction.Direction = GetPipeExitDirection(to, from);
+
+            interaction.From = from;
+            interaction.To = to;
+
+            interaction.TravelSpeed = travelSpeed != null ? travelSpeed.Value : interaction.TravelSpeed;
+            interaction.LerpPipeOffset = lerpPipeOffset != null ? lerpPipeOffset.Value : interaction.LerpPipeOffset;
+
+            while (entity != null && interaction.Moved <= interaction.Distance && interaction.Distance != 0f && !interaction.ExitEarly)
+            {
+                interaction?.OnPipeUpdate(entity, interaction);
+
+                float lerpValue = interaction.Moved / interaction.Distance;
+
+                entity.Position = Vector2.Lerp(from, to, lerpValue) + (interaction.LerpPipeOffset ? Vector2.Lerp(Vector2.Zero, interaction.PipeRenderOffset, lerpValue) : interaction.PipeRenderOffset);
+                interaction.Moved += interaction.TravelSpeed * Engine.DeltaTime;
+
+                yield return null;
+            }
+
+            interaction.Moved -= interaction.Distance;
+        }
+
+        // Visually update exiting steps
+        // Correct for exit overshooting
+        private IEnumerator exitPipeMovement(Entity entity, MarioClearPipeInteraction interaction)
+        {
+            Vector2 previousPosition = entity.Position;
+            Vector2 currentPosition = entity.Position;
+
+            bool colliding = entity?.CollideFirst<MarioClearPipeSolid>() != null;
+
+            while (entity != null && entity.Scene != null && colliding)
+            {
+                entity.Position += interaction.DirectionVector * TransportSpeed * Engine.DeltaTime;
+
+                previousPosition = currentPosition;
+                currentPosition = entity.Position;
+
+                colliding = entity.CollideFirst<MarioClearPipeSolid>() != null;
+
+                if (colliding)
+                {
+                    yield return null;
+                }
+            }
+
+            // Correct for overshooting the exit, attempt to place entity as close as possible to the pipe
+
+            Vector2 lowerValue = previousPosition;
+            Vector2 upperValue = currentPosition;
+            Vector2 lastUnblocked = entity.Position;
+
+            while (entity != null && entity.Scene != null && (lowerValue - upperValue).LengthSquared() > 0.5f)
+            {
+                entity.Position = Vector2.Lerp(lowerValue, upperValue, 0.5f);
+
+                if (entity.CollideFirst<MarioClearPipeSolid>() != null)
+                {
+                    lowerValue = entity.Position;
+                }
+                else
+                {
+                    upperValue = entity.Position;
+                    lastUnblocked = entity.Position;
+                }
+            }
+
+            entity.Position = lastUnblocked;
+        }
+
+        private void ejectFromPipe(Entity entity, MarioClearPipeInteraction interaction)
+        {
+            interaction.OnPipeExit?.Invoke(entity, interaction);
+            interaction.CurrentClearPipe = null;
+            CurrentlyTransportedEntities.Remove(entity);
+
+            // Fix float positions, causes weird collision bugs for entities
+            entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
+        }
+
         // TODO - Cleanup and make more generic 
         private IEnumerator pipeMovement(Entity entity, bool fromStart, bool canBounceBack=true, Vector2? forcedStartPosition=null)
         {
@@ -232,117 +318,34 @@ namespace Celeste.Mod.PandorasBox
             {
                 CurrentlyTransportedEntities.Add(entity);
                 interaction.CurrentClearPipe = this;
-                interaction?.OnPipeEnter?.Invoke(entity, transportStartDirection);
+                interaction?.OnPipeEnter?.Invoke(entity, interaction);
 
+                // Check if we are entering the pipe or bouncing back from a blocked exit
                 if (forcedStartPosition != null)
                 {
                     entity.Position = forcedStartPosition.Value;
                 }
-
-                Vector2 fromNode = entity.Position;
-                Vector2 toNode = nodes[startIndex];
-
-                float distance = (fromNode - toNode).Length();
-                float moved = 0f;
-
-                Vector2 movementDirection = Vector2.Zero;
-
-                // Gracefully attempt to move to the first node
-                while (entity != null && moved <= distance && distance != 0f)
+                else
                 {
-                    if (!interaction.CanStayInPipe(entity))
-                    {
-                        interaction.CurrentClearPipe = null;
-                        CurrentlyTransportedEntities.Remove(entity);
-
-                        yield break;
-                    }
-
-                    entity.Position = Vector2.Lerp(fromNode, toNode, moved / distance) + Vector2.Lerp(Vector2.Zero, interaction.PipeRenderOffset, moved / distance);
-
-                    moved += TransportSpeed * Engine.DeltaTime * transportSpeedEnterMultiplier;
-
-                    yield return null;
+                    // Gracefully attempt to move to the first node
+                    yield return moveBetweenNodes(entity, interaction, entity.Position, nodes[startIndex], TransportSpeed * transportSpeedEnterMultiplier, true);
                 }
-    
-                moved -= distance;
 
                 // Follow the nodes
-                for (int i = startIndex; i != lastIndex; i += direction)
+                for (int i = startIndex; i != lastIndex && !interaction.ExitEarly; i += direction)
                 {
-                    fromNode = nodes[i];
-                    toNode = nodes[i + direction];
+                    yield return moveBetweenNodes(entity, interaction, nodes[i], nodes[i + direction], TransportSpeed, false);
+                }
 
-                    distance = (fromNode - toNode).Length();
-
-                    while (entity != null && moved <= distance && distance != 0f)
-                    {
-                        if (!interaction.CanStayInPipe(entity))
-                        {
-                            interaction.CurrentClearPipe = null;
-                            CurrentlyTransportedEntities.Remove(entity);
-
-                            yield break;
-                        }
-
-                        entity.Position = Vector2.Lerp(fromNode, toNode, moved / distance) + interaction.PipeRenderOffset;
-
-                        moved += TransportSpeed * Engine.DeltaTime;
-
-                        yield return null;
-                    }
-
-                    moved -= distance;
-                    movementDirection = (toNode - fromNode).SafeNormalize();
+                if (interaction.ExitEarly)
+                {
+                    yield break;
                 }
 
                 // Check if we can exit the pipe
-                // If we can exit, visually update these steps
-                // Otherwise bounce back early
-                if (CanExitPipe(entity, movementDirection, TransportSpeed))
+                if (CanExitPipe(entity, interaction.DirectionVector, TransportSpeed))
                 {
-                    Vector2 previousPosition = entity.Position;
-                    Vector2 currentPosition = entity.Position;
-
-                    bool colliding = entity?.CollideFirst<MarioClearPipeSolid>() != null;
-
-                    while (entity != null && entity.Scene != null && colliding)
-                    {
-                        entity.Position += movementDirection * TransportSpeed * Engine.DeltaTime;
-
-                        previousPosition = currentPosition;
-                        currentPosition = entity.Position;
-
-                        colliding = entity.CollideFirst<MarioClearPipeSolid>() != null;
-
-                        if (colliding)
-                        {
-                            yield return null;
-                        }
-                    }
-
-                    // Correct for overshooting the exit, attempt to place entity as close as possible to the pipe
-
-                    Vector2 lowerValue = previousPosition;
-                    Vector2 upperValue = currentPosition;
-                    Vector2 lastUnblocked = entity.Position;
-
-                    while (entity != null && entity.Scene != null && (lowerValue - upperValue).LengthSquared() > 0.5f)
-                    {
-                        entity.Position = Vector2.Lerp(lowerValue, upperValue, 0.5f);
-
-                        if (entity.CollideFirst<MarioClearPipeSolid>() != null)
-                        {
-                            lowerValue = entity.Position;
-                        }
-                        else
-                        {
-                            upperValue = entity.Position;
-                            lastUnblocked = entity.Position;
-                        }
-                    }
-
-                    entity.Position = lastUnblocked;
+                    yield return exitPipeMovement(entity, interaction);
                 }
 
                 // Send back if it gets stuck in a solid
@@ -350,28 +353,18 @@ namespace Celeste.Mod.PandorasBox
                 {
                     if (canBounceBack)
                     {
-                        entity.Position = toNode + interaction.PipeRenderOffset;
+                        entity.Position = nodes[lastIndex] + interaction.PipeRenderOffset;
 
-                        yield return pipeMovement(entity, !fromStart, false, toNode);
+                        yield return pipeMovement(entity, !fromStart, false, entity.Position);
                     }
                     else
                     {
-                        interaction?.OnPipeBlocked?.Invoke(entity, Direction.None);
-                        interaction.CurrentClearPipe = null;
-                        CurrentlyTransportedEntities.Remove(entity);
-
-                        // Fix float positions, causes weird collision bugs for entities
-                        entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
+                        ejectFromPipe(entity, interaction);
                     }
                 }
                 else
                 {
-                    interaction.OnPipeExit?.Invoke(entity, transportEndDirection);
-                    interaction.CurrentClearPipe = null;
-                    CurrentlyTransportedEntities.Remove(entity);
-
-                    // Fix float positions, causes weird collision bugs for entities
-                    entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
+                    ejectFromPipe(entity, interaction);
                 }
             }
         }
@@ -415,9 +408,9 @@ namespace Celeste.Mod.PandorasBox
         {
             if (!HasClearPipeInteraction(self))
             {
-                MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(new Vector2(0f, 10f));
+                MarioClearPipeInteraction pipeInteraction = new MarioClearPipeInteraction(new Vector2(0f, 10f));
 
-                interaction.OnPipeBlocked = (entity, direction) =>
+                pipeInteraction.OnPipeBlocked = (entity, direction) =>
                 {
                     Player player = entity as Player;
 
@@ -427,7 +420,7 @@ namespace Celeste.Mod.PandorasBox
                     }
                 };
 
-                interaction.OnPipeEnter = (entity, direction) =>
+                pipeInteraction.OnPipeEnter = (entity, direction) =>
                 {
                     Player player = entity as Player;
 
@@ -448,15 +441,12 @@ namespace Celeste.Mod.PandorasBox
                     }
                 };
 
-                interaction.OnPipeExit = (entity, direction) =>
+                pipeInteraction.OnPipeExit = (entity, interaction) =>
                 {
                     Player player = entity as Player;
-                    MarioClearPipeInteraction playerInteraction = entity?.Get<MarioClearPipeInteraction>();
 
-                    if (player != null && playerInteraction != null)
+                    if (player != null && interaction != null)
                     {
-                        float transportSpeed = playerInteraction.CurrentClearPipe.TransportSpeed;
-
                         player.StateMachine.Locked = false;
                         player.DummyGravity = true;
                         player.DummyAutoAnimate = true;
@@ -467,35 +457,14 @@ namespace Celeste.Mod.PandorasBox
                             player.StateMachine.State = Player.StNormal;
                         }
 
-                        switch (direction)
+                        player.Speed = interaction.DirectionVector * interaction.CurrentClearPipe.TransportSpeed;
+
+                        if (Math.Abs(player.Speed.X) > 0.707)
                         {
-                            case Direction.Up:
-                                player.Speed = new Vector2(0f, -transportSpeed);
-                                break;
-
-                            case Direction.Right:
-                                if (Input.MoveX.Value >= 0 || !Input.Grab.Check)
-                                {
-                                    player.Speed = new Vector2(transportSpeed, 0f);
-                                }
-
-                                break;
-
-                            case Direction.Down:
-                                player.Speed = new Vector2(0f, transportSpeed);
-                                break;
-
-                            case Direction.Left:
-                                if (Input.MoveX.Value <= 0 || !Input.Grab.Check)
-                                {
-                                    player.Speed = new Vector2(-transportSpeed, 0f);
-                                }
-
-                                break;
-
-                            default:
+                            if ((player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0) && Input.Grab.Check)
+                            {
                                 player.Speed = Vector2.Zero;
-                                break;
+                            }
                         }
 
                         if (player.StateMachine.State == Player.StRedDash)
@@ -505,7 +474,7 @@ namespace Celeste.Mod.PandorasBox
                     }
                 };
 
-                interaction.CanEnterPipe = (entity, direction) => {
+                pipeInteraction.CanEnterPipe = (entity, direction) => {
                     Player player = entity as Player;
 
                     if (player.OnGround())
@@ -531,14 +500,17 @@ namespace Celeste.Mod.PandorasBox
                     return canPlayerDashIntoPipe(player, direction);
                 };
 
-                interaction.CanStayInPipe = (entity) =>
+                pipeInteraction.OnPipeUpdate = (entity, interaction) =>
                 {
                     Player player = entity as Player;
 
-                    return player != null && !player.Dead;
+                    if (player != null && player.Dead)
+                    {
+                        interaction.ExitEarly = true;
+                    }
                 };
 
-                self.Add(interaction);
+                self.Add(pipeInteraction);
             }
 
             orig(self, scene);
