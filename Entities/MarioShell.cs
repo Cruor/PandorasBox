@@ -205,7 +205,7 @@ namespace Celeste.Mod.PandorasBox
                     }
                 }
 
-                Speed.Y = OnGround() && Speed.Y > 0 ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
+                Speed.Y = OnGround() && Speed.Y >= 0 ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
 
                 MoveH(Speed.X * Engine.DeltaTime, onCollideH, null);
                 MoveV(Speed.Y * Engine.DeltaTime, onCollideV, null);
