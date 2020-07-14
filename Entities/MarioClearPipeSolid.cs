@@ -143,7 +143,7 @@ namespace Celeste.Mod.PandorasBox
 
             pipeTexture = GFX.Game[$"objects/pandorasBox/clearPipe/{texturePath}/pipe"];
 
-            Depth = 10;
+            Depth = -11000;
             SurfaceSoundIndex = surfaceSound >= 0 ? surfaceSound : 11; // 11 = Deactivated Space Jam, 
 
             addPipeVisuals();
