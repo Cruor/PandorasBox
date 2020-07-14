@@ -14,7 +14,6 @@ using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 // TODO - Grabing stuff going in and out of pipes might result in teleporting grabables
 // TODO - Add clear pipe interacter to new entities if posibile
 // TODO - Disable collidable status?
-// TODO - Fix jittery visuals on blocked exits
 // TODO - Move all player pipe interaction away
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
@@ -351,7 +350,7 @@ namespace Celeste.Mod.PandorasBox
                 {
                     if (canBounceBack)
                     {
-                        entity.Position = toNode;
+                        entity.Position = toNode + interaction.PipeRenderOffset;
 
                         yield return pipeMovement(entity, !fromStart, false, toNode);
                     }
