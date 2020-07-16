@@ -209,13 +209,13 @@ namespace Celeste.Mod.PandorasBox
             {
                 if (endNodeExit && direction == Direction.Right || startNodeExit && direction == Direction.Left)
                 {
-                    width -= 4f;
-                    length -= 4f;
+                    width -= endNodeExit && startNodeExit ? 0f : 4f;
+                    length -= endNodeExit && startNodeExit ? 0f : 4f;
                 }
                 else if (startNodeExit && direction == Direction.Up || endNodeExit && direction == Direction.Down)
                 {
-                    height -= 4f;
-                    length -= 4f;
+                    height -= endNodeExit && startNodeExit ? 0f : 4f;
+                    length -= endNodeExit && startNodeExit ? 0f : 4f;
                 }
             }
 

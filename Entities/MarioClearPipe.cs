@@ -15,6 +15,9 @@ using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 // TODO - Add clear pipe interacter to new entities if posibile
 // TODO - Disable collidable status?
 // TODO - Move all player pipe interaction away
+// TODO - Expose HasPipeSolids, players can "grab" air when exiting horizontal pipeless pipes now
+// TODO - More broken offsets with one straight non multiple of 16 width
+// TODO - Make sure player cannot enter pipes with holdables in hand
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
 // - Can player enter
@@ -131,7 +134,7 @@ namespace Celeste.Mod.PandorasBox
                     return new Hitbox(pipeColliderWidth, colliderDepth, position.X - pipeColliderWidth / 2, position.Y - colliderDepth);
 
                 case Direction.Right:
-                    if (pipeWidth / 8 % 2 == 1)
+                    if (pipeWidth / 8 % 2 == 1 && nodes.Length > 2)
                     {
                         return new Hitbox(colliderDepth, pipeColliderWidth, position.X - 4, position.Y - pipeColliderWidth / 2);
                     }
@@ -141,7 +144,7 @@ namespace Celeste.Mod.PandorasBox
                     }
 
                 case Direction.Down:
-                    if (pipeWidth / 8 % 2 == 1)
+                    if (pipeWidth / 8 % 2 == 1 && nodes.Length > 2)
                     {
                         return new Hitbox(pipeColliderWidth, colliderDepth, position.X - pipeColliderWidth / 2, position.Y - 4);
                     }
