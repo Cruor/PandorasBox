@@ -26,14 +26,14 @@ function Ahorn.selection(gate::Gate)
         return Ahorn.Rectangle(x - 4, y - 4, 8, 8)
 
     else
-        return Ahorn.getSpriteRectangle(sprite, x, y, jx=0.5, jy=0.0)
+        return Ahorn.getSpriteRectangle(sprite, x - 4, y, jx=0.0, jy=0.0)
     end
 end
 
 function Ahorn.render(ctx::Ahorn.Cairo.CairoContext, gate::Gate, room::Maple.Room)
     sprite = getSprite(gate)
 
-    Ahorn.drawSprite(ctx, sprite, 0, 0, jx=0.5, jy=0.0)
+    Ahorn.drawSprite(ctx, sprite, -4, 0, jx=0.0, jy=0.0)
 end
 
 end

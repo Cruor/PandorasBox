@@ -45,12 +45,11 @@ namespace Celeste.Mod.PandorasBox
 
             Add((Component)(sprite = new Sprite(GFX.Game, textureFolder + "gate")));
             sprite.AddLoop("gate", "", 0.06f);
-            sprite.JustifyOrigin(0.5f, 0.0f);
             sprite.Play("gate");
             sprite.OnLastFrame = onLastFrame;
             sprite.Rate = 0;
 
-            Collider.Left -= sprite.Width / 4;
+            sprite.X = -base.Collider.Width / 2f;
 
             Add(shaker = new Shaker(on: false));
 
