@@ -13,11 +13,8 @@ using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 // TODO - Better player visuals?
 // TODO - Grabing stuff going in and out of pipes might result in teleporting grabables
 // TODO - Add clear pipe interacter to new entities if posibile
-// TODO - Disable collidable status?
 // TODO - Move all player pipe interaction away
 // TODO - Expose HasPipeSolids, players can "grab" air when exiting horizontal pipeless pipes now
-// TODO - More broken offsets with one straight non multiple of 16 width
-// TODO - Make sure player cannot enter pipes with holdables in hand
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
 // - Can player enter
@@ -193,7 +190,7 @@ namespace Celeste.Mod.PandorasBox
 
         private static bool canPlayerDashIntoPipe(Player player, Direction pipeDirection)
         {
-            if ((Input.Dash.Pressed && player.CanDash && player.Holding == null) || player.DashAttacking)
+            if ((Input.Dash.Pressed && player.CanDash) || player.DashAttacking)
             {
                 Vector2 dashDir = Input.Dash.Pressed ? Input.GetAimVector() : player.DashDir;
 
@@ -479,6 +476,11 @@ namespace Celeste.Mod.PandorasBox
 
                 pipeInteraction.CanEnterPipe = (entity, direction) => {
                     Player player = entity as Player;
+
+                    if (player.Holding != null)
+                    {
+                        return false;
+                    }
 
                     if (player.OnGround())
                     {
