@@ -50,6 +50,8 @@ namespace Celeste.Mod.PandorasBox
             sprite.OnLastFrame = onLastFrame;
             sprite.Rate = 0;
 
+            Collider.Left -= sprite.Width / 4;
+
             Add(shaker = new Shaker(on: false));
 
             Depth = -9000;
