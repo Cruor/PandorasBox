@@ -26,8 +26,6 @@ namespace Celeste.Mod.PandorasBox
         public String texture;
         public int id;
 
-        public static MethodInfo springMethodInfo = typeof(Spring).GetMethod("BounceAnimate", BindingFlags.NonPublic | BindingFlags.Instance);
-
         public Holdable Hold;
         public Scene scene;
 
@@ -158,6 +156,8 @@ namespace Celeste.Mod.PandorasBox
             Hold.OnPickup = new Action(OnPickup);
             Hold.OnRelease = new Action<Vector2>(OnRelease);
             Hold.SpeedGetter = () => Speed;
+            Hold.DangerousCheck = DangerousCheck;
+            Hold.OnHitSpring = HitSpring;
 
             decorationMoving.Visible = shellMoving.Visible = false;
 
@@ -170,6 +170,11 @@ namespace Celeste.Mod.PandorasBox
 
                 bloom.Visible = light.Visible = true;
             }
+        }
+
+        private bool DangerousCheck(HoldableCollider collider)
+        {
+            return !Hold.IsHeld && Speed != Vector2.Zero;
         }
 
         public override void Update()
@@ -196,15 +201,6 @@ namespace Celeste.Mod.PandorasBox
 
             if (!Hold.IsHeld)
             {
-                foreach (Spring spring in scene.Entities.Where(e => e is Spring))
-                {
-                    if (CollideCheck(spring))
-                    {
-                        Audio.Play("event:/game/general/spring", BottomCenter);
-                        HitSpring(spring);
-                    }
-                }
-
                 Speed.Y = OnGround() && Speed.Y >= 0 ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
 
                 MoveH(Speed.X * Engine.DeltaTime, onCollideH, null);
@@ -235,29 +231,43 @@ namespace Celeste.Mod.PandorasBox
                 }
             }
 
+            Hold.CheckAgainstColliders();
+
             Hold.PickupCollider = Math.Abs(Speed.X) >= 10e-6 ? pickupMovingCollider : pickupIdleCollider;
 
             base.Update();
         }
 
-        public void HitSpring(Spring spring)
+        public bool HitSpring(Spring spring)
         {
-            if (!Hold.IsHeld && springGrace == 0)
+            if (!Hold.IsHeld && springGrace <= 0)
             {
-                if (spring.Orientation == Spring.Orientations.WallRight)
+                springGrace = graceSpring;
+
+                if (spring.Orientation == Spring.Orientations.WallRight && Speed.X >= 0f)
                 {
                     Speed.X = -baseSpeed;
+                    Speed.Y = -140f;
+
+                    return true;
                 }
-                else if (spring.Orientation == Spring.Orientations.WallLeft)
+                else if (spring.Orientation == Spring.Orientations.WallLeft && Speed.X <= 0f)
                 {
                     Speed.X = baseSpeed;
+                    Speed.Y = -140f;
+
+                    return true;
+
                 }
+                else if (spring.Orientation == Spring.Orientations.Floor && Speed.Y >= 0f)
+                {
+                    Speed.Y = -240f;
 
-                Speed.Y -= spring.Orientation == Spring.Orientations.Floor ? 240f : 140f;
-
-                springGrace = graceSpring;
-                springMethodInfo.Invoke(spring, null);
+                    return true;
+                }
             }
+
+            return false;
         }
 
         private void OnPlayer(Player player)
@@ -293,7 +303,7 @@ namespace Celeste.Mod.PandorasBox
                     else
                     {
                         player.Die((player.Center - Position).SafeNormalize(), false, true);
-                    }                   
+                    }
                 }
             }
         }
