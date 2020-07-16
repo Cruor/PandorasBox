@@ -7,11 +7,10 @@ using Monocle;
 using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
+using Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions;
 
 using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 
-// TODO - Better player visuals?
-// TODO - Move all player pipe interaction away
 // TODO - Expose HasPipeSolids, players can "grab" air when exiting horizontal pipeless pipes now
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
@@ -386,12 +385,16 @@ namespace Celeste.Mod.PandorasBox
 
         public static void Load()
         {
-            
+            InteractionRegistry.Add(new HoldableInteraction());
+            InteractionRegistry.Add(new PlayerInteraction());
+            InteractionRegistry.Add(new PufferInteraction());
+
+            InteractionRegistry.Load();
         }
 
         public static void Unload()
         {
-            
+            InteractionRegistry.Unload();
         }
     }
 }

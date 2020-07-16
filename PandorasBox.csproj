@@ -63,6 +63,7 @@
     <Compile Include="Entities\ClearPipeInteractions\BaseInteraction.cs" />
     <Compile Include="Entities\ClearPipeInteractions\HoldableInteraction.cs" />
     <Compile Include="Entities\ClearPipeInteractions\InteractionRegistry.cs" />
+    <Compile Include="Entities\ClearPipeInteractions\PufferInteraction.cs" />
     <Compile Include="Entities\ClearPipeInteractions\PlayerInteraction.cs" />
     <Compile Include="Entities\CloneSpawner.cs" />
     <Compile Include="Entities\DreamDashController.cs" />
