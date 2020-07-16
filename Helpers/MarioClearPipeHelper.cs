@@ -7,6 +7,8 @@ using Monocle;
 using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
+using Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions;
+using Celeste.Mod.PandorasBox.Entities;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -22,110 +24,6 @@ namespace Celeste.Mod.PandorasBox
         }
 
         public static HashSet<Entity> CurrentlyTransportedEntities = new HashSet<Entity>();
-
-        public static void HoldableOnPipeBlocked(Entity entity, MarioClearPipeInteraction interaction)
-        {
-            Actor actor = entity as Actor;
-
-            if (actor != null)
-            {
-                // Attempt to force a squish by moving the colliding solid by 0 pixels
-                Solid solid = actor.CollideFirst<Solid>(actor.Position);
-                if (solid != null)
-                {
-                    solid.MoveHExact(0);
-                }
-            }
-            else
-            {
-                entity?.Scene?.Remove(entity);
-            }
-        }
-
-        public static void HoldableOnPipeEnter(Entity entity, MarioClearPipeInteraction interaction)
-        {
-            Holdable holdable = entity?.Get<Holdable>();
-
-            if (holdable != null)
-            {
-                // Reset speeds and remove holder
-                holdable.Release(Vector2.Zero);
-            }
-        }
-
-        public static void HoldableOnPipeExit(Entity entity, MarioClearPipeInteraction interaction)
-        {
-            Holdable holdable = entity?.Get<Holdable>();
-
-            if (holdable != null && entity.Scene != null && !holdable.IsHeld)
-            {
-                Vector2 speed = Vector2.Zero;
-
-                switch (interaction.Direction)
-                {
-                    case Direction.Left:
-                        speed = new Vector2(-1.0f, 0.1f);
-                        break;
-
-                    case Direction.Right:
-                        speed = new Vector2(1.0f, -0.1f);
-                        break;
-
-                    case Direction.Up:
-                        speed = new Vector2(0, -1.0f);
-                        break;
-
-                    case Direction.Down:
-                        speed = new Vector2(0, 1.0f);
-                        break;
-
-                    default:
-                        break;
-                }
-
-                holdable.Release(speed);
-            }
-        }
-
-        public static bool HoldableCanEnterPipe(Entity entity, Direction direction)
-        {
-            Holdable holdable = entity?.Get<Holdable>();
-
-            if (holdable != null && !holdable.IsHeld)
-            {
-                Vector2 speed = holdable?.SpeedGetter() ?? Vector2.Zero;
-
-                switch (direction)
-                {
-                    case Direction.Left:
-                        return speed.X > 0;
-
-                    case Direction.Right:
-                        return speed.X < 0;
-
-                    case Direction.Up:
-                        return speed.Y > 0;
-
-                    case Direction.Down:
-                        return speed.Y < 0;
-
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
-        }
-
-        public static void HoldableOnPipeUpdate(Entity entity, MarioClearPipeInteraction interaction)
-        {
-            Holdable holdable = entity?.Get<Holdable>();
-
-            if (holdable != null && holdable.IsHeld)
-            {
-                interaction.ExitEarly = true;
-            }
-        }
 
         public static Vector2 GetPipeExitDirectionVector(Vector2 exit, Vector2 previous)
         {
@@ -204,45 +102,20 @@ namespace Celeste.Mod.PandorasBox
             return GetClearPipeInteraction(entity) != null;
         }
 
-        // Attempt to add clear pipe interaction if it doesn't already exist
-        public static void AddClearPipeInteraction(Entity entity)
+        public static bool AddClearPipeInteraction(Entity entity)
         {
-            AddClearPipeInteractionToHoldable(entity);
-        }
-
-        public static void AddClearPipeInteractionToHoldable(Entity entity)
-        {
-            Holdable holdable = entity.Get<Holdable>();
-
-            // Depends on SpeedGetter and OnRelease being defined
-            if (holdable != null && holdable.SpeedGetter != null && holdable.OnRelease != null && !HasClearPipeInteraction(entity))
+            if (!HasClearPipeInteraction(entity))
             {
-                Vector2 pipeOffset = Vector2.Zero;
-
-                if (entity.Collider != null)
+                foreach (BaseInteraction baseInteraction in InteractionRegistry.BaseInteractions)
                 {
-                    pipeOffset = -entity.Collider.Center;
+                    if (baseInteraction.AddInteraction(entity))
+                    {
+                        return true;
+                    }
                 }
-
-                MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(pipeOffset);
-
-                interaction.OnPipeBlocked = MarioClearPipeHelper.HoldableOnPipeBlocked;
-                interaction.OnPipeEnter = MarioClearPipeHelper.HoldableOnPipeEnter;
-                interaction.OnPipeExit = MarioClearPipeHelper.HoldableOnPipeExit;
-                interaction.OnPipeUpdate = MarioClearPipeHelper.HoldableOnPipeUpdate;
-
-                interaction.CanEnterPipe = MarioClearPipeHelper.HoldableCanEnterPipe;
-
-                entity.Add(interaction);
             }
-        }
 
-        public static void AddClearPipeInteractionToHoldables(Scene scene)
-        {
-            foreach (Entity entity in scene.Entities)
-            {
-                AddClearPipeInteractionToHoldable(entity);
-            }
+            return false;
         }
     }
 }

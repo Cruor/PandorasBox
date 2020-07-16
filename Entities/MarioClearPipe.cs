@@ -186,34 +186,6 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private static bool canPlayerDashIntoPipe(Player player, Direction pipeDirection)
-        {
-            if ((Input.Dash.Pressed && player.CanDash) || player.DashAttacking)
-            {
-                Vector2 dashDir = Input.Dash.Pressed ? Input.GetAimVector() : player.DashDir;
-
-                switch (pipeDirection)
-                {
-                    case Direction.Up:
-                        return dashDir.Y > 0;
-
-                    case Direction.Right:
-                        return dashDir.X < 0;
-
-                    case Direction.Down:
-                        return dashDir.Y < 0;
-
-                    case Direction.Left:
-                        return dashDir.X > 0;
-
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
-        }
-
         private IEnumerator moveBetweenNodes(Entity entity, MarioClearPipeInteraction interaction, Vector2 from, Vector2 to, float? travelSpeed=null, bool? lerpPipeOffset=null)
         {
             interaction.Distance = (from - to).Length();
@@ -412,132 +384,14 @@ namespace Celeste.Mod.PandorasBox
             base.Awake(scene);
         }
 
-        // TODO - Move
-        private static void Player_Added(On.Celeste.Player.orig_Added orig, Player self, Scene scene)
-        {
-            if (!HasClearPipeInteraction(self))
-            {
-                MarioClearPipeInteraction pipeInteraction = new MarioClearPipeInteraction(new Vector2(0f, 10f));
-
-                pipeInteraction.OnPipeBlocked = (entity, direction) =>
-                {
-                    Player player = entity as Player;
-
-                    if (player != null && !player.Dead)
-                    {
-                        player.Die(Vector2.Zero);
-                    }
-                };
-
-                pipeInteraction.OnPipeEnter = (entity, direction) =>
-                {
-                    Player player = entity as Player;
-
-                    if (player != null)
-                    {
-                        if (player.StateMachine.State != Player.StRedDash)
-                        {
-                            player.StateMachine.State = Player.StDummy;
-                        }
-                        
-                        player.StateMachine.Locked = true;
-                        player.DummyGravity = false;
-                        player.DummyAutoAnimate = false;
-                        player.ForceCameraUpdate = true;
-                        player.Speed = Vector2.Zero;
-
-                        player.Sprite.Play("spin");
-                    }
-                };
-
-                pipeInteraction.OnPipeExit = (entity, interaction) =>
-                {
-                    Player player = entity as Player;
-
-                    if (player != null && interaction != null)
-                    {
-                        player.StateMachine.Locked = false;
-                        player.DummyGravity = true;
-                        player.DummyAutoAnimate = true;
-                        player.ForceCameraUpdate = false;
-
-                        if (player.StateMachine.State != Player.StRedDash)
-                        {
-                            player.StateMachine.State = Player.StNormal;
-                        }
-
-                        player.Speed = interaction.DirectionVector * interaction.CurrentClearPipe.TransportSpeed;
-
-                        if (Math.Abs(player.Speed.X) > 0.707)
-                        {
-                            if ((player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0) && Input.Grab.Check)
-                            {
-                                player.Speed = Vector2.Zero;
-                            }
-                        }
-
-                        if (player.StateMachine.State == Player.StRedDash)
-                        {
-                            player.DashDir = player.Speed.SafeNormalize();
-                        }
-                    }
-                };
-
-                pipeInteraction.CanEnterPipe = (entity, direction) => {
-                    Player player = entity as Player;
-
-                    if (player.Holding != null)
-                    {
-                        return false;
-                    }
-
-                    if (player.OnGround())
-                    {
-                        // If the player is visually ducking or pushing up against a solid
-                        bool canDuckInto = player.Sprite.CurrentAnimationID == "duck" && direction == Direction.Up;
-                        bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == Direction.Left || direction == Direction.Right);
-
-                        if (canDuckInto || canPushInto)
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        // Player holds up near a downwards facing pipe
-                        if (Input.MoveY < 0 && direction == Direction.Down && player.Speed.Y < 0)
-                        {
-                            return true;
-                        }
-                    }
-
-                    return canPlayerDashIntoPipe(player, direction);
-                };
-
-                pipeInteraction.OnPipeUpdate = (entity, interaction) =>
-                {
-                    Player player = entity as Player;
-
-                    if (player != null && player.Dead)
-                    {
-                        interaction.ExitEarly = true;
-                    }
-                };
-
-                self.Add(pipeInteraction);
-            }
-
-            orig(self, scene);
-        }
-
         public static void Load()
         {
-            On.Celeste.Player.Added += Player_Added;
+            
         }
 
         public static void Unload()
         {
-            On.Celeste.Player.Added -= Player_Added;
+            
         }
     }
 }

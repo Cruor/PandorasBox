@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
+using Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -36,6 +37,11 @@ namespace Celeste.Mod.PandorasBox
             WaterDrowningController.Load();
             TimeField.Load();
             MarioClearPipe.Load();
+
+            InteractionRegistry.Add(new HoldableInteraction());
+            InteractionRegistry.Add(new PlayerInteraction());
+
+            InteractionRegistry.Load();
         }
 
         public override void Unload()
@@ -44,6 +50,7 @@ namespace Celeste.Mod.PandorasBox
             WaterDrowningController.Unload();
             TimeField.Unload();
             MarioClearPipe.Unload();
+            InteractionRegistry.Unload();
         }
     }
 }
