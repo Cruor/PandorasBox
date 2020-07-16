@@ -57,7 +57,7 @@ namespace Celeste.Mod.PandorasBox
         {
             Holdable holdable = entity?.Get<Holdable>();
 
-            if (holdable != null && entity.Scene != null)
+            if (holdable != null && entity.Scene != null && !holdable.IsHeld)
             {
                 Vector2 speed = Vector2.Zero;
 
@@ -204,33 +204,44 @@ namespace Celeste.Mod.PandorasBox
             return GetClearPipeInteraction(entity) != null;
         }
 
+        // Attempt to add clear pipe interaction if it doesn't already exist
+        public static void AddClearPipeInteraction(Entity entity)
+        {
+            AddClearPipeInteractionToHoldable(entity);
+        }
+
+        public static void AddClearPipeInteractionToHoldable(Entity entity)
+        {
+            Holdable holdable = entity.Get<Holdable>();
+
+            // Depends on SpeedGetter and OnRelease being defined
+            if (holdable != null && holdable.SpeedGetter != null && holdable.OnRelease != null && !HasClearPipeInteraction(entity))
+            {
+                Vector2 pipeOffset = Vector2.Zero;
+
+                if (entity.Collider != null)
+                {
+                    pipeOffset = -entity.Collider.Center;
+                }
+
+                MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(pipeOffset);
+
+                interaction.OnPipeBlocked = MarioClearPipeHelper.HoldableOnPipeBlocked;
+                interaction.OnPipeEnter = MarioClearPipeHelper.HoldableOnPipeEnter;
+                interaction.OnPipeExit = MarioClearPipeHelper.HoldableOnPipeExit;
+                interaction.OnPipeUpdate = MarioClearPipeHelper.HoldableOnPipeUpdate;
+
+                interaction.CanEnterPipe = MarioClearPipeHelper.HoldableCanEnterPipe;
+
+                entity.Add(interaction);
+            }
+        }
+
         public static void AddClearPipeInteractionToHoldables(Scene scene)
         {
             foreach (Entity entity in scene.Entities)
             {
-                Holdable holdable = entity.Get<Holdable>();
-
-                // Depends on SpeedGetter and OnRelease being defined
-                if (holdable != null && holdable.SpeedGetter != null && holdable.OnRelease != null && !HasClearPipeInteraction(entity))
-                {
-                    Vector2 pipeOffset = Vector2.Zero;
-
-                    if (entity.Collider != null)
-                    {
-                        pipeOffset = -entity.Collider.Center;
-                    }
-
-                    MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(pipeOffset);
-
-                    interaction.OnPipeBlocked = MarioClearPipeHelper.HoldableOnPipeBlocked;
-                    interaction.OnPipeEnter = MarioClearPipeHelper.HoldableOnPipeEnter;
-                    interaction.OnPipeExit = MarioClearPipeHelper.HoldableOnPipeExit;
-                    interaction.OnPipeUpdate = MarioClearPipeHelper.HoldableOnPipeUpdate;
-
-                    interaction.CanEnterPipe = MarioClearPipeHelper.HoldableCanEnterPipe;
-
-                    entity.Add(interaction);
-                }
+                AddClearPipeInteractionToHoldable(entity);
             }
         }
     }

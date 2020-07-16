@@ -11,8 +11,6 @@ using Celeste.Mod.Entities;
 using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 
 // TODO - Better player visuals?
-// TODO - Grabing stuff going in and out of pipes might result in teleporting grabables
-// TODO - Add clear pipe interacter to new entities if posibile
 // TODO - Move all player pipe interaction away
 // TODO - Expose HasPipeSolids, players can "grab" air when exiting horizontal pipeless pipes now
 // - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
@@ -296,6 +294,7 @@ namespace Celeste.Mod.PandorasBox
         {
             interaction.OnPipeExit?.Invoke(entity, interaction);
             interaction.CurrentClearPipe = null;
+
             CurrentlyTransportedEntities.Remove(entity);
 
             // Fix float positions, causes weird collision bugs for entities
@@ -318,6 +317,7 @@ namespace Celeste.Mod.PandorasBox
             {
                 CurrentlyTransportedEntities.Add(entity);
                 interaction.CurrentClearPipe = this;
+                interaction.ExitEarly = false;
                 interaction?.OnPipeEnter?.Invoke(entity, interaction);
 
                 // Check if we are entering the pipe or bouncing back from a blocked exit
@@ -339,6 +339,8 @@ namespace Celeste.Mod.PandorasBox
 
                 if (interaction.ExitEarly)
                 {
+                    ejectFromPipe(entity, interaction);
+
                     yield break;
                 }
 
@@ -378,13 +380,22 @@ namespace Celeste.Mod.PandorasBox
                     continue;
                 }
 
-                if (entity.Collider.Collide(startCollider) && CanTransportEntity(entity, startDirection))
+                if (entity.Collider.Collide(startCollider))
                 {
-                    Add(new Coroutine(pipeMovement(entity, true)));
+                    AddClearPipeInteraction(entity);
+
+                    if (CanTransportEntity(entity, startDirection)) {
+                        Add(new Coroutine(pipeMovement(entity, true)));
+                    }
                 }
-                else if (entity.Collider.Collide(endCollider) && CanTransportEntity(entity, endDirection))
+                else if (entity.Collider.Collide(endCollider))
                 {
-                    Add(new Coroutine(pipeMovement(entity, false)));
+                    AddClearPipeInteraction(entity);
+
+                    if (CanTransportEntity(entity, endDirection))
+                    {
+                        Add(new Coroutine(pipeMovement(entity, false)));
+                    }
                 }
             }
 
@@ -393,8 +404,6 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Awake(Scene scene)
         {
-            AddClearPipeInteractionToHoldables(scene);
-
             if (hasPipeSolids)
             {
                 addPipeSolids(pipeWidth);
