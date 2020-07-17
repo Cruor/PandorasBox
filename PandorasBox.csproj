@@ -69,6 +69,7 @@
     <Compile Include="Entities\DreamDashController.cs" />
     <Compile Include="Entities\FlagToggleSwitch.cs" />
     <Compile Include="Entities\Gate.cs" />
+    <Compile Include="Entities\InteractibleHoldable.cs" />
     <Compile Include="Entities\Lamp.cs" />
     <Compile Include="Entities\LaserDetectorActor.cs" />
     <Compile Include="Entities\LaserNoteblock.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Entities\MarioClearPipe.cs" />
     <Compile Include="Entities\MarioClearPipeInteraction.cs" />
     <Compile Include="Entities\MarioClearPipeSolid.cs" />
+    <Compile Include="Entities\PropellerBox.cs" />
     <Compile Include="Helpers\MarioClearPipeHelper.cs" />
     <Compile Include="Helpers\NoteHelper.cs" />
     <Compile Include="Utils\PeekAQueue.cs" />
