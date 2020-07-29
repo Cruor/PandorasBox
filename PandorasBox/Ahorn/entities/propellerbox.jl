@@ -13,7 +13,7 @@ const placements = Ahorn.PlacementDict(
 function getSprite(entity::PropellerBox)
     texture = get(entity, "texture", "default")
 
-    return "objects/pandorasBox/propellerBox/$texture/charged00"
+    return "objects/pandorasBox/propellerBox/$texture/default_charges00"
 end
 
 

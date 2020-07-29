@@ -10,6 +10,10 @@ using Celeste.Mod.Entities;
 
 namespace Celeste.Mod.PandorasBox
 {
+    // TODO - Weird physics when boosting during pickup animation
+    // TODO - Fix weird "warp" on room load
+    // TODO - Better flash colors to match default texture
+
     [Tracked(false)]
     [CustomEntity("pandorasBox/propellerBox")]
     class PropellerBox : Actor
@@ -18,9 +22,6 @@ namespace Celeste.Mod.PandorasBox
         public static float BoostLaunchThreshold = -120f;
 
         public static MethodInfo launchBeginInfo = typeof(Player).GetMethod("LaunchBegin", BindingFlags.Instance | BindingFlags.NonPublic);
-
-        private Sprite chargedSprite;
-        private Sprite unchargedSprite;
 
         private float noGravityTimer;
         private float hardVerticalHitSoundCooldown;
@@ -36,6 +37,12 @@ namespace Celeste.Mod.PandorasBox
         private Vector2 previousPosition;
 
         private float boostDuration;
+
+        private Sprite flashOverlaySprite;
+        private List<Sprite> chargeSprites;
+
+        private Color flashUseColor;
+        private Color flashRechargedColor;
 
         private InteractibleHoldable interactibleHoldable;
 
@@ -56,17 +63,20 @@ namespace Celeste.Mod.PandorasBox
             Charges = MaxCharges;
 
             texture = data.Attr("texture", "default");
+            flashUseColor = ColorHelper.GetColor(data.Attr("flashUseColor", "DarkBlue"));
+            flashRechargedColor = ColorHelper.GetColor(data.Attr("flashChargeColor", "DarkRed"));
 
-            Add(chargedSprite = new Sprite(GFX.Game, $"objects/pandorasBox/propellerBox/{texture}/charged"));
-            Add(unchargedSprite = new Sprite(GFX.Game, $"objects/pandorasBox/propellerBox/{texture}/uncharged"));
+            chargeSprites = new List<Sprite>();
 
-            chargedSprite.AddLoop("charged", "", 0.1f);
-            chargedSprite.Play("charged", true, false);
-            chargedSprite.Justify = new Vector2(0.5f, 1f);
+            for (int i = 0; i <= MaxCharges; i++)
+            {
+                addChargeSprite(i);
+            }
 
-            unchargedSprite.AddLoop("uncharged", "", 0.1f);
-            unchargedSprite.Play("uncharged", true, false);
-            unchargedSprite.Justify = new Vector2(0.5f, 1f);
+            Add(flashOverlaySprite = new Sprite(GFX.Game, $"objects/pandorasBox/propellerBox/{texture}/flash_overlay"));
+
+            flashOverlaySprite.Add("flash_overlay", "", 0.045f);
+            flashOverlaySprite.Justify = new Vector2(0.5f, 1f);
 
             Add(Hold = new Holdable());
             Hold.PickupCollider = new Hitbox(16f, 22f, -8f, -16f);
@@ -84,7 +94,59 @@ namespace Celeste.Mod.PandorasBox
             Add(new VertexLight(base.Collider.Center, Color.White, 1f, 32, 64));
             Add(new WindMover(WindMode));
 
+            updateChargeSpriteVisibility();
+
             base.Tag = Tags.TransitionUpdate;
+        }
+
+        private bool animationExists(string key)
+        {
+            var textures = GFX.Game.orig_GetAtlasSubtextures(key).ToArray();
+
+            return textures.Length > 0;
+        }
+
+        private void addChargeSprite(int charge)
+        {
+            string spriteKey = $"{charge}_charges";
+            string spritePath = $"objects/pandorasBox/propellerBox/{texture}/{spriteKey}";
+            Sprite sprite;
+
+            if (animationExists(spritePath)) {
+                sprite = new Sprite(GFX.Game, spritePath);
+            }
+            else
+            {
+                sprite = new Sprite(GFX.Game, $"objects/pandorasBox/propellerBox/{texture}/default_charges");
+                spriteKey = "default_charges";
+            }
+
+            sprite.AddLoop(spriteKey, "", 0.1f);
+            sprite.Play(spriteKey, true, false);
+            sprite.Justify = new Vector2(0.5f, 1f);
+
+            Add(sprite);
+            chargeSprites.Add(sprite);
+        }
+
+        private void updateChargeSpriteVisibility()
+        {
+            for (int i = 0; i <= MaxCharges; i++)
+            {
+                Sprite sprite = chargeSprites[i];
+
+                sprite.Visible = i == Charges;
+            }
+        }
+
+        private void changeChargeSpriteRate(float rate)
+        {
+            for (int i = 0; i <= MaxCharges; i++)
+            {
+                Sprite sprite = chargeSprites[i];
+
+                sprite.Rate = rate;
+            }
         }
 
         private void OnCollideV(CollisionData data)
@@ -382,37 +444,36 @@ namespace Celeste.Mod.PandorasBox
 
         private void updateVisuals()
         {
-            unchargedSprite.Visible = Charges <= 0;
-            chargedSprite.Visible = Charges > 0;
-
             if (Hold.IsHeld)
             {
                 if (boostDuration > 0)
                 {
-                    unchargedSprite.Rate = 2.5f;
-                    chargedSprite.Rate = 2.5f;
+                    changeChargeSpriteRate(2.5f);
                 }
                 else if (HasBoosted)
                 {
-                    unchargedSprite.Rate = 1.6f;
-                    chargedSprite.Rate = 1.6f;
+                    changeChargeSpriteRate(1.6f);
                 }
                 else
                 {
-                    unchargedSprite.Rate = 1f;
-                    chargedSprite.Rate = 1f;
+                    changeChargeSpriteRate(1f);
                 }
             }
             else if (OnGround()) 
             {
-                unchargedSprite.Rate = 0.4f;
-                chargedSprite.Rate = 0.4f;
+                changeChargeSpriteRate(0.4f);
             }
             else
             {
-                unchargedSprite.Rate = 1f;
-                chargedSprite.Rate = 1f;
+                changeChargeSpriteRate(1f);
             }
+        }
+
+        private void showChargeFlash()
+        {
+            flashOverlaySprite.Play("flash_overlay", true);
+            flashOverlaySprite.Visible = true;
+            flashOverlaySprite.OnFinish = (path) => flashOverlaySprite.Visible = false;
         }
 
         private void useCharge(Holdable hold)
@@ -431,6 +492,9 @@ namespace Celeste.Mod.PandorasBox
                 launchBeginInfo.Invoke(player, new object[] { });
 
                 Charges--;
+                flashOverlaySprite.Color = flashUseColor;
+                updateChargeSpriteVisibility();
+                showChargeFlash();
 
                 Input.Dash.ConsumeBuffer();
             }
@@ -441,10 +505,14 @@ namespace Celeste.Mod.PandorasBox
             if (MaxCharges > Charges)
             {
                 Charges = MaxCharges;
-            }
 
-            Hold.SlowFall = false;
-            HasBoosted = false;
+                Hold.SlowFall = false;
+                HasBoosted = false;
+
+                flashOverlaySprite.Color = flashRechargedColor;
+                updateChargeSpriteVisibility();
+                showChargeFlash();
+            }
         }
 
         private void onHoldPickup(Holdable hold)
