@@ -44,7 +44,7 @@ namespace Celeste.Mod.PandorasBox
             Level level = Scene as Level;
             bool deep = water != null && !this.Scene.CollideCheck<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 16));
 
-            for (this.height = 8f; this.Y + this.height < level.Bounds.Bottom && (water = Scene.CollideFirst<ColoredWater>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null && ((solid = Scene.CollideFirst<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null || !solid.BlockWaterfalls); solid = null)
+            for (this.height = 8f; this.Y + this.height < level.Bounds.Bottom && (water = Scene.CollideFirst<Water>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null && ((solid = Scene.CollideFirst<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null || !solid.BlockWaterfalls); solid = null)
             {
                 this.height += 8f;
             }       
