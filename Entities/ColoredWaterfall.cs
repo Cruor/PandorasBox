@@ -25,6 +25,7 @@ namespace Celeste.Mod.PandorasBox
         private Solid solid;
         private SoundSource loopingSfx;
         private SoundSource enteringSfx;
+        private bool visibleOnCamera;
 
         public ColoredWaterfall(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
@@ -42,19 +43,21 @@ namespace Celeste.Mod.PandorasBox
             Tag = Tags.TransitionUpdate;
 
             Level level = Scene as Level;
-            bool deep = water != null && !this.Scene.CollideCheck<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 16));
+            bool deep = water != null && !Scene.CollideCheck<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 16));
 
-            for (this.height = 8f; this.Y + this.height < level.Bounds.Bottom && (water = Scene.CollideFirst<Water>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null && ((solid = Scene.CollideFirst<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null || !solid.BlockWaterfalls); solid = null)
+            for (height = 8f; Y + height < level.Bounds.Bottom && (water = Scene.CollideFirst<Water>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null && ((solid = Scene.CollideFirst<Solid>(new Rectangle((int)X, (int)(Y + height), 8, 8))) == null || !solid.BlockWaterfalls); solid = null)
             {
-                this.height += 8f;
-            }       
-           
-            Add((Component)(loopingSfx = new SoundSource()));
+                height += 8f;
+            }
+
+            Add((loopingSfx = new SoundSource()));
             loopingSfx.Play("event:/env/local/waterfall_small_main");
-            Add((Component)(enteringSfx = new SoundSource()));
+
+            Add((enteringSfx = new SoundSource()));
             enteringSfx.Play(deep ? "event:/env/local/waterfall_small_in_deep" : "event:/env/local/waterfall_small_in_shallow");
             enteringSfx.Position.Y = height;
-            Add((Component)new DisplacementRenderHook(new Action(RenderDisplacement)));
+
+            Add(new DisplacementRenderHook(new Action(RenderDisplacement)));
         }
 
         public void RenderDisplacement()
@@ -62,44 +65,69 @@ namespace Celeste.Mod.PandorasBox
             Draw.Rect(X, Y, 8f, height, new Color(0.5f, 0.5f, 0.8f, 1f));
         }
 
+        private void updateVisiblity()
+        {
+            Camera camera = SceneAs<Level>().Camera;
+            float cameraWidth = camera.Right - camera.Left;
+            float cameraHeight = camera.Bottom - camera.Top;
+
+            bool horizontalCheck = X < camera.Right + cameraWidth && X > camera.Left - cameraWidth;
+            bool verticalCheck = Y < camera.Top + cameraHeight && Y + height > camera.Bottom - cameraHeight;
+
+            visibleOnCamera = horizontalCheck && verticalCheck;
+        }
+
         public override void Update()
         {
-            loopingSfx.Position.Y = Calc.Clamp((Scene as Level).Camera.Position.Y + 90f, Y, height);
+            Level level = Scene as Level;
+
+            loopingSfx.Position.Y = Calc.Clamp(level.Camera.Position.Y + 90f, Y, height);
+
+            if (Scene.OnInterval(0.05f))
+            {
+                updateVisiblity();
+            }
 
             if (water != null && Scene.OnInterval(0.3f))
             {
                 water.TopSurface.DoRipple(new Vector2(X + 4f, water.Y), 0.75f);
             }
 
-            if (water != null || solid != null)
+            if (visibleOnCamera)
             {
-                Vector2 position = new Vector2(X + 4f, (float)(Y + height + 2.0));
-                (Scene as Level).ParticlesFG.Emit(Water.P_Splash, 1, position, new Vector2(8f, 2f), baseColor, new Vector2(0.0f, -1f).Angle());
-            }
+                if (water != null || solid != null)
+                {
+                    Vector2 position = new Vector2(X + 4f, (float)(Y + height + 2.0));
+                    level.ParticlesFG.Emit(Water.P_Splash, 1, position, new Vector2(8f, 2f), baseColor, new Vector2(0.0f, -1f).Angle());
+                }
 
-            base.Update();
+                base.Update();
+            }
         }
 
         public override void Render()
         {
-            if (water == null || water.TopSurface == null)
+            if (visibleOnCamera)
             {
-                Draw.Rect(X + 1f, Y, 6f, height, fillColor);
-                Draw.Rect(X - 1f, Y, 2f, height, surfaceColor);
-                Draw.Rect(X + 7f, Y, 2f, height, surfaceColor);
-            }
-            else
-            {
-                Water.Surface topSurface = water.TopSurface;
-                float num = height + water.TopSurface.Position.Y - water.Y;
-
-                for (int index = 0; index < 6; ++index)
+                if (water == null || water.TopSurface == null)
                 {
-                    Draw.Rect((float)(X + index + 1f), Y, 1f, num - topSurface.GetSurfaceHeight(new Vector2(X + 1f + index, water.Y)), fillColor);
+                    Draw.Rect(X + 1f, Y, 6f, height, fillColor);
+                    Draw.Rect(X - 1f, Y, 2f, height, surfaceColor);
+                    Draw.Rect(X + 7f, Y, 2f, height, surfaceColor);
                 }
+                else
+                {
+                    Water.Surface topSurface = water.TopSurface;
+                    float num = height + water.TopSurface.Position.Y - water.Y;
 
-                Draw.Rect(X - 1f, Y, 2f, num - topSurface.GetSurfaceHeight(new Vector2(X, water.Y)), surfaceColor);
-                Draw.Rect(X + 7f, Y, 2f, num - topSurface.GetSurfaceHeight(new Vector2(X + 8f, water.Y)), surfaceColor);
+                    for (int index = 0; index < 6; ++index)
+                    {
+                        Draw.Rect((float)(X + index + 1f), Y, 1f, num - topSurface.GetSurfaceHeight(new Vector2(X + 1f + index, water.Y)), fillColor);
+                    }
+
+                    Draw.Rect(X - 1f, Y, 2f, num - topSurface.GetSurfaceHeight(new Vector2(X, water.Y)), surfaceColor);
+                    Draw.Rect(X + 7f, Y, 2f, num - topSurface.GetSurfaceHeight(new Vector2(X + 8f, water.Y)), surfaceColor);
+                }
             }
         }
     }

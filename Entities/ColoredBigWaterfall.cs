@@ -13,45 +13,23 @@ namespace Celeste.Mod.PandorasBox
     {
         private Color baseColor;
 
-        public static FieldInfo fillColorField;
-        public static FieldInfo surfaceColorField;
+        public static FieldInfo fillColorField = typeof(BigWaterfall).GetField("fillColor", BindingFlags.Instance | BindingFlags.NonPublic);
+        public static FieldInfo surfaceColorField = typeof(BigWaterfall).GetField("surfaceColor", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private bool fixedColors;
 
         public ColoredBigWaterfall(EntityData data, Vector2 offset) : base(data, offset)
         {
             baseColor = ColorHelper.GetColor(data.Attr("color", "#87CEFA"));
-
-            fixedColors = false;
         }
 
-        public override void Update()
+        public override void Awake(Scene scene)
         {
-            if (!fixedColors)
-            {
-                cacheFieldInfo();
+            Color surfaceColor = baseColor * 0.8f;
+            Color fillColor = baseColor * 0.3f;
 
-                Color surfaceColor = baseColor * 0.8f;
-                Color fillColor = baseColor * 0.3f;
-
-                surfaceColorField.SetValue(this, surfaceColor);
-                fillColorField.SetValue(this, fillColor);
-
-                fixedColors = true;
-            }
-
-            base.Update();
-        }
-
-        private static void cacheFieldInfo()
-        {
-            if (fillColorField == null || surfaceColorField == null)
-            {
-                var type = typeof(BigWaterfall);
-
-                fillColorField = type.GetField("fillColor", BindingFlags.Instance | BindingFlags.NonPublic);
-                surfaceColorField = type.GetField("surfaceColor", BindingFlags.Instance | BindingFlags.NonPublic);
-            }
+            surfaceColorField.SetValue(this, surfaceColor);
+            fillColorField.SetValue(this, fillColor);
         }
     }
 }
