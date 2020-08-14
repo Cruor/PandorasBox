@@ -8,14 +8,14 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
 
-// Todo particle trail (configable)
-// Uses shells current color
-
 namespace Celeste.Mod.PandorasBox
 {
     [CustomEntity("pandorasBox/coloredWaterfall")]
     class ColoredWaterfall : Actor
     {
+        private static int horizontalVisiblityBuffer = 32;
+        private static int verticalVisiblityBuffer = 32;
+
         private float height;
         private Water water;
         private Color baseColor;
@@ -68,11 +68,9 @@ namespace Celeste.Mod.PandorasBox
         private void updateVisiblity()
         {
             Camera camera = SceneAs<Level>().Camera;
-            float cameraWidth = camera.Right - camera.Left;
-            float cameraHeight = camera.Bottom - camera.Top;
 
-            bool horizontalCheck = X < camera.Right + cameraWidth && X > camera.Left - cameraWidth;
-            bool verticalCheck = Y < camera.Top + cameraHeight && Y + height > camera.Bottom - cameraHeight;
+            bool horizontalCheck = X < camera.Right + horizontalVisiblityBuffer && X > camera.Left - horizontalVisiblityBuffer;
+            bool verticalCheck = Y < camera.Bottom + verticalVisiblityBuffer && Y + height > camera.Top - verticalVisiblityBuffer;
 
             visibleOnCamera = horizontalCheck && verticalCheck;
         }
