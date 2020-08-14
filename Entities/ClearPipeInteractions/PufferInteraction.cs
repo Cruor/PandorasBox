@@ -17,9 +17,6 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
         public static FieldInfo hitSpeedField = typeof(Puffer).GetField("hitSpeed", BindingFlags.Instance | BindingFlags.NonPublic);
         public static MethodInfo gotoHitSpeedMethod = typeof(Puffer).GetMethod("GotoHitSpeed", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        // TODO - Tweak? Springs are (280, 224)
-        private static Vector2 speedMultiplier = new Vector2(280, 224);
-
         public override bool AddInteraction(Entity entity)
         {
             Puffer puffer = entity as Puffer;
@@ -44,12 +41,12 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
         public static void PufferOnPipeBlocked(Entity entity, MarioClearPipeInteraction interaction)
         {
-            
+
         }
 
         public static void PufferOnPipeEnter(Entity entity, MarioClearPipeInteraction interaction)
         {
-            
+
         }
 
         public static void PufferOnPipeExit(Entity entity, MarioClearPipeInteraction interaction)
@@ -58,7 +55,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
             if (puffer != null)
             {
-                gotoHitSpeedMethod.Invoke(puffer, new Object[] {interaction.DirectionVector* speedMultiplier});
+                gotoHitSpeedMethod.Invoke(puffer, new Object[] {interaction.DirectionVector * interaction.TravelSpeed});
             }
         }
 
