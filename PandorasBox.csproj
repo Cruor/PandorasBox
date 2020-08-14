@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -67,6 +67,7 @@
     <Compile Include="Entities\ClearPipeInteractions\PlayerInteraction.cs" />
     <Compile Include="Entities\CloneSpawner.cs" />
     <Compile Include="Entities\DreamDashController.cs" />
+    <Compile Include="Entities\EntityActivator.cs" />
     <Compile Include="Entities\FlagToggleSwitch.cs" />
     <Compile Include="Entities\Gate.cs" />
     <Compile Include="Entities\InteractibleHoldable.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Entities\PropellerBox.cs" />
     <Compile Include="Helpers\MarioClearPipeHelper.cs" />
     <Compile Include="Helpers\NoteHelper.cs" />
+    <Compile Include="Helpers\TypeHelper.cs" />
     <Compile Include="Utils\PeekAQueue.cs" />
     <Compile Include="Entities\CircularResortPlatform.cs" />
     <Compile Include="Entities\ColoredBigWaterfall.cs" />
