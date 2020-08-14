@@ -272,7 +272,7 @@ namespace Celeste.Mod.PandorasBox
 
         private void OnPlayer(Player player)
         {
-            if (!Hold.IsHeld && grace == 0)
+            if (!Hold.IsHeld && grace == 0 && Get<MarioClearPipeInteraction>()?.CurrentClearPipe == null)
             {
                 if (isDangerous)
                 {
