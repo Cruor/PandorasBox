@@ -12,7 +12,6 @@ namespace Celeste.Mod.PandorasBox
 {
     // TODO - Weird physics when boosting during pickup animation
     // TODO - Fix weird "warp" on room load
-    // TODO - Better flash colors to match default texture
 
     [Tracked(false)]
     [CustomEntity("pandorasBox/propellerBox")]
@@ -63,8 +62,8 @@ namespace Celeste.Mod.PandorasBox
             Charges = MaxCharges;
 
             texture = data.Attr("texture", "default");
-            flashUseColor = ColorHelper.GetColor(data.Attr("flashUseColor", "DarkBlue"));
-            flashRechargedColor = ColorHelper.GetColor(data.Attr("flashChargeColor", "DarkRed"));
+            flashUseColor = ColorHelper.GetColor(data.Attr("flashUseColor", "#3F437C"));
+            flashRechargedColor = ColorHelper.GetColor(data.Attr("flashChargeColor", "#5A1C1C"));
 
             chargeSprites = new List<Sprite>();
 
