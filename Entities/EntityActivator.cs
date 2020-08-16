@@ -31,7 +31,7 @@ namespace Celeste.Mod.PandorasBox
             OnStay,
             OnLeave,
             OnFlagActive,
-            OnFlagInvactive,
+            OnFlagInactive,
             OnFlagActivated,
             OnFlagDeactivated,
             OnUpdate,
@@ -120,7 +120,7 @@ namespace Celeste.Mod.PandorasBox
                 {
                     UpdateEntities();
                 }
-                else if (ActivationMode == ActivationModes.OnFlagInvactive && !currentFlagValue && OnInterval())
+                else if (ActivationMode == ActivationModes.OnFlagInactive && !currentFlagValue && OnInterval())
                 {
                     UpdateEntities();
                 }

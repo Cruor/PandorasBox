@@ -25,7 +25,7 @@ const activationModes = String[
     "OnStay",
     "OnLeave",
     "OnFlagActive",
-    "OnFlagInvactive",
+    "OnFlagInactive",
     "OnFlagActivated",
     "OnFlagDeactivated",
     "OnUpdate",
