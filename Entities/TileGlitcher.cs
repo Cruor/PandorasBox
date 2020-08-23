@@ -14,6 +14,9 @@ namespace Celeste.Mod.PandorasBox
     [CustomEntity("pandorasBox/tileGlitcher")]
     class TileGlitcher : Entity
     {
+        private static FieldInfo lookupFieldInfo = typeof(Autotiler).GetField("lookup", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo terrainTypeInfo = typeof(Autotiler).GetField("TerrainType", BindingFlags.Instance | BindingFlags.NonPublic);
+
         private static List<char> validFgTiles;
         private static List<char> validBgTiles;
 
@@ -61,23 +64,25 @@ namespace Celeste.Mod.PandorasBox
 
             active = true;
 
-            cacheReflection();
+            cacheValidTiles();
         }
 
-        public static void cacheReflection()
+        private static void cacheValidTiles()
         {
             if (validFgTiles == null || validBgTiles == null)
             {
-                var type = typeof(Autotiler);
-                var lookupFieldInfo = type.GetField("lookup", BindingFlags.Instance | BindingFlags.NonPublic);
-                var terrainTypeInfo = type.GetField("TerrainType", BindingFlags.Instance | BindingFlags.NonPublic);
-
                 var fgValidTilesDict = lookupFieldInfo.GetValue(GFX.FGAutotiler) as IDictionary;
                 var bgValidTilesDict = lookupFieldInfo.GetValue(GFX.BGAutotiler) as IDictionary;
 
                 validFgTiles = fgValidTilesDict.Keys.Cast<char>().ToList();
                 validBgTiles = bgValidTilesDict.Keys.Cast<char>().ToList();
             }
+        }
+
+        private static void clearValidTiles()
+        {
+            validFgTiles = null;
+            validBgTiles = null;
         }
 
         public override void Update()
@@ -99,6 +104,20 @@ namespace Celeste.Mod.PandorasBox
             base.Update();
         }
 
+        public override void Removed(Scene scene)
+        {
+            base.Removed(scene);
+
+            clearValidTiles();
+        }
+
+        public override void SceneEnd(Scene scene)
+        {
+            base.SceneEnd(scene);
+
+            clearValidTiles();
+        }
+
         private IEnumerator tileGlitcher()
         {
             glitcherAdded = true;
@@ -115,6 +134,8 @@ namespace Celeste.Mod.PandorasBox
 
             bool glitchFg = target.Equals("FG") || target.Equals("Both");
             bool glitchBg = target.Equals("BG") || target.Equals("Both");
+
+            cacheValidTiles();
 
             List<Char> validFg = new List<char>(validFgTiles);
             List<Char> validBg = new List<char>(validBgTiles);
