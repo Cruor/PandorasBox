@@ -19,6 +19,17 @@ namespace Celeste.Mod.PandorasBox
         private Color fillColor;
         private Color rayTopColor;
         private bool fixedSurfaces;
+        private bool visibleOnCamera;
+
+        private List<Water.Surface> emptySurfaces;
+        private List<Water.Surface> actualSurfaces;
+        private Water.Surface actualTopSurface;
+        private Water.Surface dummyTopSurface;
+        private Water.Surface actualBottomSurface;
+        private Water.Surface dummyBottomSurface;
+
+        private static int horizontalVisiblityBuffer = 48;
+        private static int verticalVisiblityBuffer = 48;
 
         public static FieldInfo fillColorField = typeof(Water).GetField("FillColor", BindingFlags.Static | BindingFlags.Public);
         public static FieldInfo surfaceColorField = typeof(Water).GetField("SurfaceColor", BindingFlags.Static | BindingFlags.Public);
@@ -48,15 +59,56 @@ namespace Celeste.Mod.PandorasBox
                 {
                     TopSurface = new Water.Surface(Position + new Vector2(Width / 2f, 8f), new Vector2(0.0f, -1f), Width, Height);
                     Surfaces.Add(TopSurface);
+
+                    actualTopSurface = TopSurface;
+                    dummyTopSurface = new Water.Surface(Position + new Vector2(Width / 2f, 8f), new Vector2(0.0f, -1f), Width, Height);
                 }
 
                 if (hasBottom)
                 {
                     BottomSurface = new Water.Surface(Position + new Vector2(Width / 2f, Height - 8f), new Vector2(0.0f, 1f), Width, Height);
                     Surfaces.Add(BottomSurface);
+
+                    actualBottomSurface = BottomSurface;
+                    dummyBottomSurface = new Water.Surface(Position + new Vector2(Width / 2f, Height - 8f), new Vector2(0.0f, 1f), Width, Height);
                 }
 
                 fixedSurfaces = true;
+                actualSurfaces = Surfaces;
+                emptySurfaces = new List<Surface>();
+            }
+        }
+
+        // Swap around surfaces to make sure the base Update method doesn't waste cycles on non visible water
+        // Use dummy surfaces to not crash vanilla waterfall
+        private void updateSurfaces()
+        {
+            Surfaces = visibleOnCamera ? actualSurfaces : emptySurfaces;
+            TopSurface = visibleOnCamera ? actualTopSurface : dummyTopSurface;
+            BottomSurface = visibleOnCamera ? actualBottomSurface : dummyBottomSurface;
+
+            if (!visibleOnCamera)
+            {
+                dummyTopSurface?.Ripples?.Clear();
+                dummyBottomSurface?.Ripples?.Clear();
+            }
+        }
+
+        private void updateVisiblity(Level level)
+        {
+            Camera camera = level.Camera;
+
+            bool horizontalCheck = X < camera.Right + horizontalVisiblityBuffer && X + Width > camera.Left - horizontalVisiblityBuffer;
+            bool verticalCheck = Y < camera.Bottom + verticalVisiblityBuffer && Y + Height > camera.Top - verticalVisiblityBuffer;
+
+            visibleOnCamera = horizontalCheck && verticalCheck;
+        }
+
+        private void changeColor(FieldInfo fieldInfo, Color from, Color to)
+        {
+            if (from != to)
+            {
+                fieldInfo.SetValue(null, to);
             }
         }
 
@@ -64,40 +116,35 @@ namespace Celeste.Mod.PandorasBox
         {
             Color origFill = Water.FillColor;
             Color origSurface = Water.SurfaceColor;
-            Color origRayTop = Water.RayTopColor;
 
-            fillColorField.SetValue(null, fillColor);
-            surfaceColorField.SetValue(null, surfaceColor);
-            //rayTopColorField.SetValue(null, rayTopColor);
-
-            fixSurfaces();
+            changeColor(fillColorField, origFill, fillColor);
+            changeColor(surfaceColorField, origSurface, surfaceColor);
 
             base.Render();
 
-            fillColorField.SetValue(null, origFill);
-            surfaceColorField.SetValue(null, origSurface);
-            //rayTopColorField.SetValue(null, origRayTop);
+            changeColor(fillColorField, fillColor, origFill);
+            changeColor(surfaceColorField, surfaceColor, origSurface);
         }
 
         public override void Update()
         {
-            Color origFill = Water.FillColor;
-            Color origSurface = Water.SurfaceColor;
+            Level level = Scene as Level;
             Color origRayTop = Water.RayTopColor;
 
-            //fillColorField.SetValue(null, fillColor);
-            //surfaceColorField.SetValue(null, surfaceColor);
-            rayTopColorField.SetValue(null, rayTopColor);
+            updateVisiblity(level);
+            updateSurfaces();
+
+            changeColor(rayTopColorField, origRayTop, rayTopColor);
 
             base.Update();
 
-            //fillColorField.SetValue(null, origFill);
-            //surfaceColorField.SetValue(null, origSurface);
-            rayTopColorField.SetValue(null, origRayTop);
+            changeColor(rayTopColorField, rayTopColor, origRayTop);
         }
 
         public override void Added(Scene scene)
         {
+            fixSurfaces();
+
             base.Added(scene);
         }
     }
