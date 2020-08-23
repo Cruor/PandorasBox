@@ -65,9 +65,9 @@ namespace Celeste.Mod.PandorasBox
             Draw.Rect(X, Y, 8f, height, new Color(0.5f, 0.5f, 0.8f, 1f));
         }
 
-        private void updateVisiblity()
+        private void updateVisiblity(Level level)
         {
-            Camera camera = SceneAs<Level>().Camera;
+            Camera camera = level.Camera;
 
             bool horizontalCheck = X < camera.Right + horizontalVisiblityBuffer && X > camera.Left - horizontalVisiblityBuffer;
             bool verticalCheck = Y < camera.Bottom + verticalVisiblityBuffer && Y + height > camera.Top - verticalVisiblityBuffer;
@@ -83,10 +83,12 @@ namespace Celeste.Mod.PandorasBox
 
             if (Scene.OnInterval(0.05f))
             {
-                updateVisiblity();
+                updateVisiblity(level);
             }
 
-            if (water != null && Scene.OnInterval(0.3f))
+            // Don't ripple if the water is inactive
+            // This can cause it to build up a lot of ripples when paired with the entity activator
+            if (water != null && water.Active && water.TopSurface != null && Scene.OnInterval(0.3f))
             {
                 water.TopSurface.DoRipple(new Vector2(X + 4f, water.Y), 0.75f);
             }
