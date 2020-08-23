@@ -10,9 +10,20 @@ using Celeste.Mod;
 using Celeste.Mod.Entities;
 using System.Reflection;
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.PandorasBox
 {
+    public class ValueHolder<T>
+    {
+        public T value;
+
+        public ValueHolder(T value)
+        {
+            this.value = value;
+        }
+    }
+
     [Tracked]
     [CustomEntity("pandorasBox/playerClone")]
     class CloneSpawner : Actor
@@ -24,6 +35,7 @@ namespace Celeste.Mod.PandorasBox
         private string visualMode;
 
         private static FieldInfo spinnerOffset = typeof(CrystalStaticSpinner).GetField("offset", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>> spinnerOffsets = new ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>>();
 
         private bool getFlag()
         {
@@ -58,6 +70,21 @@ namespace Celeste.Mod.PandorasBox
                     clone.RemoveSelf();
                     clone = null;
                 }
+            }
+        }
+
+        private static float getSpinnerOffset(CrystalStaticSpinner spinner)
+        {
+            if (spinnerOffsets.TryGetValue(spinner, out var holder)) {
+                return holder.value;
+            }
+            else
+            {
+                float offset = (float)spinnerOffset.GetValue(spinner);
+
+                spinnerOffsets.Add(spinner, new ValueHolder<float>(offset));
+
+                return offset;
             }
         }
 
@@ -125,9 +152,11 @@ namespace Celeste.Mod.PandorasBox
 
             orig(self);
 
-            if (visibleBeforeOrig && !self.Collidable && self.Scene.OnInterval(0.05f, (float)spinnerOffset.GetValue(self)))
+            var players = self.Scene.Tracker.GetEntities<Player>();
+
+            if (players.Count > 1 && visibleBeforeOrig && !self.Collidable && self.Scene.OnInterval(0.05f, getSpinnerOffset(self)))
             {
-                foreach (Player entity in self.Scene.Tracker.GetEntities<Player>())
+                foreach (Player entity in players)
                 {
                     self.Collidable = self.Collidable || (Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f);
                 }
