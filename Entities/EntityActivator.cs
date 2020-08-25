@@ -187,7 +187,7 @@ namespace Celeste.Mod.PandorasBox
                     break;
 
                 default:
-                    Logger.Log("PB", $"Unsupported entity activator mode: {Mode}");
+                    Logger.Log(PandorasBoxMod.LoggerTag, $"Unsupported entity activator mode: {Mode}");
                     break;
             }
         }

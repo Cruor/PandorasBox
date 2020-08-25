@@ -1,4 +1,4 @@
-﻿using Celeste;
+using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
 using NLua;
@@ -15,6 +15,7 @@ namespace Celeste.Mod.PandorasBox
     public class PandorasBoxMod : EverestModule
     {
         public static PandorasBoxMod Instance;
+        public static string LoggerTag = "Pandora's Box";
 
         public override Type SettingsType => null;
 
