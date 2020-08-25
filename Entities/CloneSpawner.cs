@@ -197,6 +197,15 @@ namespace Celeste.Mod.PandorasBox
             // If there is a single player there will never be a dead body in the screen when they die
             if (body == null)
             {
+                foreach (Player player in players)
+                {
+                    if (player != self)
+                    {
+                        player.Scene.Add(new CustomPlayerDeadBody(player, Vector2.Zero, false, true));
+                        player.Scene.Remove(player);
+                    }
+                }
+
                 return orig(self, direction, evenIfInvincible, registerDeathsInStats);
             }
 

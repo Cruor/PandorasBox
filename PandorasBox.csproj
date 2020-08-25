@@ -66,6 +66,7 @@
     <Compile Include="Entities\ClearPipeInteractions\PufferInteraction.cs" />
     <Compile Include="Entities\ClearPipeInteractions\PlayerInteraction.cs" />
     <Compile Include="Entities\CloneSpawner.cs" />
+    <Compile Include="Entities\CustomPlayerDeadBody.cs" />
     <Compile Include="Entities\DreamDashController.cs" />
     <Compile Include="Entities\EntityActivator.cs" />
     <Compile Include="Entities\FlagToggleSwitch.cs" />
