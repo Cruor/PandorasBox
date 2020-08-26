@@ -21,6 +21,8 @@ placements.entities.pandorasBox/shell.tooltips.lights=If the shell should be a l
 placements.entities.pandorasBox/shell.tooltips.color=The color of the shell tinting\n"Color1,Color2,Color3" for color animations.
 placements.entities.pandorasBox/shell.tooltips.direction=The start direction of the shell\n-1: Left\n0: Stand still\n1: Right.
 placements.entities.pandorasBox/shell.tooltips.colorSpeed=How fast the colors cycles.
+placements.entities.pandorasBox/shell.tooltips.grabbable=Whether the player should be able to pick up the shell or not.
+placements.entities.pandorasBox/shell.tooltips.dangerous=Whether landing on top of the shell should kill the player or not.
 
 # Dash Toggle Blocks
 placements.entities.pandorasBox/dashToggleBlock.tooltips.divisor=Divisor used for the counter looping

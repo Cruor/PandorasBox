@@ -8,8 +8,8 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
 
-// Todo particle trail (configable)
-// Uses shells current color
+// TODO - Clean up this file to match standard of newer entities
+// TODO - Make disco mode feel good
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -19,12 +19,16 @@ namespace Celeste.Mod.PandorasBox
     {
         public float grace;
         public float springGrace;
+        public float turnTime;
         public Vector2 Speed;
         public List<Color> colors;
         public float colorSpeed;
         public float timeAcc;
         public String texture;
         public int id;
+        public bool dangerous;
+        public bool disco;
+        public bool grabbable;
 
         public Holdable Hold;
         public Scene scene;
@@ -55,21 +59,14 @@ namespace Celeste.Mod.PandorasBox
         public static float graceThrow = 0.15f;
         public static float graceBounce = 0.15f;
         public static float graceSpring = 0.15f;
+        public static float turnTimeDelay = 0.3f;
 
-        public static Hashtable dangerous = new Hashtable{
+        public static Dictionary<String, bool> dangerousTextures = new Dictionary<String, bool> {
             {"koopa", false},
             {"spiny", true},
             {"beetle", false},
             {"bowserjr", true}
         };
-
-        private bool isDangerous
-        {
-            get
-            {
-                return dangerous.Contains(texture) && (bool)dangerous[texture];
-            }
-        }
 
         private bool alreadyAdded
         {
@@ -98,9 +95,9 @@ namespace Celeste.Mod.PandorasBox
             bool lights = data.Bool("lights", false);
 
             texture = data.Attr("texture", "koopa");
-
-            // Check if this is a "valid" texture
-            texture = (dangerous.ContainsKey(texture)? texture : "koopa");
+            dangerous = data.Bool("dangerous", dangerousTextures.ContainsKey(texture) && dangerousTextures[texture]);
+            disco = data.Bool("disco", false);
+            grabbable = data.Bool("grabbable", true);
 
             String rawColor = data.Attr("color", "Green");
             colorSpeed = data.Float("colorSpeed", 0.8f);
@@ -177,11 +174,8 @@ namespace Celeste.Mod.PandorasBox
             return !Hold.IsHeld && Speed != Vector2.Zero;
         }
 
-        public override void Update()
+        private void updateColors()
         {
-            grace = Math.Max(0, grace - Engine.DeltaTime);
-            springGrace = Math.Max(0, springGrace - Engine.DeltaTime);
-
             if (colors != null && colors.Count > 1 && colorSpeed > 0)
             {
                 int index = (int)Math.Floor(timeAcc / colorSpeed % colors.Count);
@@ -191,8 +185,52 @@ namespace Celeste.Mod.PandorasBox
 
                 shellMoving.Color = shellIdle.Color = newColor;
             }
+        }
 
+        private void updateDiscoShell()
+        {
+            if (disco)
+            {
+                turnTime = Math.Max(0, turnTime - Engine.DeltaTime);
+
+                if (turnTime == 0 && OnGround())
+                {
+                    Player player = Scene.Tracker.GetNearestEntity<Player>(Position);
+
+                    if (player != null)
+                    {
+                        // Make sure we always give the shell speed if it has been landed on
+                        if (Speed.X == 0)
+                        {
+                            Speed.X = X > player.X ? -baseSpeed : baseSpeed;
+                            turnTime = turnTimeDelay;
+                        }
+                        else
+                        {
+                            if (X > player.X + 16)
+                            {
+                                Speed.X = -baseSpeed;
+                                turnTime = turnTimeDelay;
+                            }
+                            else if (X < player.X - 16)
+                            {
+                                Speed.X = baseSpeed;
+                                turnTime = turnTimeDelay;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void Update()
+        {
+            grace = Math.Max(0, grace - Engine.DeltaTime);
+            springGrace = Math.Max(0, springGrace - Engine.DeltaTime);
             timeAcc += Engine.DeltaTime;
+
+            updateColors();
+            updateDiscoShell();
 
             bool useMovingVisuals = Speed.X != 0 || Get<MarioClearPipeInteraction>()?.CurrentClearPipe != null;
 
@@ -233,7 +271,7 @@ namespace Celeste.Mod.PandorasBox
 
             Hold.CheckAgainstColliders();
 
-            Hold.PickupCollider = Math.Abs(Speed.X) >= 10e-6 ? pickupMovingCollider : pickupIdleCollider;
+            Hold.PickupCollider = grabbable && Math.Abs(Speed.X) <= 10e-6 ? pickupIdleCollider : pickupMovingCollider;
 
             base.Update();
         }
@@ -274,27 +312,30 @@ namespace Celeste.Mod.PandorasBox
         {
             if (!Hold.IsHeld && grace == 0 && Get<MarioClearPipeInteraction>()?.CurrentClearPipe == null)
             {
-                if (isDangerous)
-                {
-                    player.Die((player.Center - Position).SafeNormalize());
-
-                    return;
-                }
-
+                // Landing on top
                 if (player.BottomCenter.Y < Center.Y)
                 {
-                    grace = graceBounce;
-                    player.Bounce(Top);
+                    if (dangerous)
+                    {
+                        player.Die((player.Center - Position).SafeNormalize());
 
-                    Speed.X = Math.Abs(Speed.X) >= 10e-6 ? 0 : ((Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed;
+                        return;
+                    }
+                    else
+                    {
+                        grace = graceBounce;
+                        player.Bounce(Top);
 
-                    Audio.Play("event:/game/general/thing_booped", Position).setVolume(0.5f);
+                        Speed.X = Math.Abs(Speed.X) >= 10e-6 ? 0 : ((Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed;
+
+                        Audio.Play("event:/game/general/thing_booped", Position).setVolume(0.5f);
+                    }
                 }
                 else
                 {
+                    // Attempting a kick, only valid if shell is standing still
                     if (Speed.X == 0)
                     {
-                        // Kick
                         Speed = new Vector2(((Center.X - player.Center.X) < 0 ? -1 : 1) * baseSpeed, gravity);
                         grace = gracePush;
 

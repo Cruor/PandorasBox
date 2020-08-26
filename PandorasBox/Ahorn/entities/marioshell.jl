@@ -2,7 +2,7 @@ module PandorasBoxMarioShell
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/shell" Shell(x::Integer, y::Integer, texture::String="koopa", lights::Bool=false, color::String="Green", colorSpeed::Number=0.8, direction::Integer=0)
+@mapdef Entity "pandorasBox/shell" Shell(x::Integer, y::Integer, texture::String="koopa", lights::Bool=false, color::String="Green", colorSpeed::Number=0.8, direction::Integer=0, dangerous::Bool=false, grabbable::Bool=true)
 
 const textures = Dict{String, String}(
     "Koopa" => "koopa",
