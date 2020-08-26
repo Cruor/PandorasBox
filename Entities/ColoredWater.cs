@@ -50,6 +50,12 @@ namespace Celeste.Mod.PandorasBox
         {
             if (!fixedSurfaces)
             {
+                Color origFill = Water.FillColor;
+                Color origSurface = Water.SurfaceColor;
+
+                changeColor(fillColorField, origFill, fillColor);
+                changeColor(surfaceColorField, origSurface, surfaceColor);
+
                 bool hasTop = Surfaces.Contains(TopSurface);
                 bool hasBottom = Surfaces.Contains(BottomSurface);
 
@@ -76,6 +82,9 @@ namespace Celeste.Mod.PandorasBox
                 fixedSurfaces = true;
                 actualSurfaces = Surfaces;
                 emptySurfaces = new List<Surface>();
+
+                changeColor(fillColorField, fillColor, origFill);
+                changeColor(surfaceColorField, surfaceColor, origSurface);
             }
         }
 
