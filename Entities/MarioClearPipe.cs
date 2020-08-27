@@ -11,12 +11,9 @@ using Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions;
 
 using static Celeste.Mod.PandorasBox.MarioClearPipeHelper;
 
-// TODO - Expose HasPipeSolids, players can "grab" air when exiting horizontal pipeless pipes now
-// - Make it use a method lookup for each state, defaulting to current behavior, lets mods easily use the system
 // TODO - Attributes
 // - Can player enter
 // - Blocking off exits
-// - Transport speed?
 // - Launch power?
 // - Force dash entry?
 // - Disable dash entry?
@@ -27,8 +24,10 @@ namespace Celeste.Mod.PandorasBox
     [CustomEntity("pandorasBox/clearPipe")]
     public class MarioClearPipe : Entity
     {
+        // Pixels smaller than the pipe width
+        private static int pipeWidthColliderValue = 4;
+
         // Transport speed Per second
-        // TODO - More publics?
         public float TransportSpeed { get; protected set; } = 175f;
         private float transportSpeedEnterMultiplier = 0.75f;
 
@@ -39,7 +38,7 @@ namespace Celeste.Mod.PandorasBox
         private string texturePath;
         private int surfaceSound;
 
-        private bool hasPipeSolids;
+        public bool HasPipeSolids { get; protected set; }
 
         private Vector2[] nodes;
 
@@ -62,16 +61,11 @@ namespace Celeste.Mod.PandorasBox
             texturePath = data.Attr("texture", "glass");
             surfaceSound = data.Int("surfaceSound", -1);
 
-            hasPipeSolids = data.Bool("hasPipeSolids", true);
+            HasPipeSolids = data.Bool("hasPipeSolids", true);
+            TransportSpeed = data.Float("transportSpeed", 175f);
 
-            // Debug attributes
-            TransportSpeed = data.Float("debugTransportSpeed", 175f);
-            transportSpeedEnterMultiplier = data.Float("debugTransportSpeedEnterMultiplier", 0.75f);
-
-            pipeWidth = data.Int("debugPipeWidth", 32);
-            pipeColliderWidth = data.Int("debugPipeColliderWidth", 28);
-            pipeColliderDepth = data.Int("debugPipeColliderDepth", 4);
-            // ----
+            pipeWidth = data.Int("pipeWidth", 32);
+            pipeColliderWidth = pipeWidth - pipeWidthColliderValue;
 
             startDirection = GetPipeExitDirection(nodes[0], nodes[1]);
             endDirection = GetPipeExitDirection(nodes[nodes.Length - 1], nodes[nodes.Length - 2]);
@@ -375,7 +369,7 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Awake(Scene scene)
         {
-            if (hasPipeSolids)
+            if (HasPipeSolids)
             {
                 addPipeSolids(pipeWidth);
             }

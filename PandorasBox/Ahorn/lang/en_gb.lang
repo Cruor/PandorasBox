@@ -156,4 +156,11 @@ placements.entities.pandorasBox/propellerBox.tooltips.texture=The texture to use
 placements.entities.pandorasBox/propellerBox.tooltips.flashUseColor=The flash color when using a charge.
 placements.entities.pandorasBox/propellerBox.tooltips.flashChargeColor=The flash color when recharging.
 
+# Clear Pipes
+placements.entities.pandorasBox/clearPipe.tooltips.texture=The texture to use for the clear pipe. Path is "objects/pandorasBox/clearPipe/$texturePath/pipe", where $texture is your input. Look at the assets to see structure.
+placements.entities.pandorasBox/clearPipe.tooltips.surfaceSound=Override default surface sound. Leave at -1 for default.
+placements.entities.pandorasBox/clearPipe.tooltips.hasPipeSolids=Whether the pipe should spawn solids or not.
+placements.entities.pandorasBox/clearPipe.tooltips.transportSpeed=Which speed the pipe should transport entites at. Speed is pixels per second.
+placements.entities.pandorasBox/clearPipe.tooltips.pipeWidth=Width of the pipe. Might cause visual oddities with non multiples of 8.
+
 # -- Triggers --
