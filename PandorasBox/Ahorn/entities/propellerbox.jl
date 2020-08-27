@@ -2,7 +2,7 @@ module PandorasBoxPropellerBox
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/propellerBox" PropellerBox(x::Integer, y::Integer)
+@mapdef Entity "pandorasBox/propellerBox" PropellerBox(x::Integer, y::Integer, texture::String="default", flashUseColor::String="3F437C", flashChargeColor::String="5A1C1C", maxCharges::Integer=3)
 
 const placements = Ahorn.PlacementDict(
     "Propeller Box (Pandora's Box)" => Ahorn.EntityPlacement(

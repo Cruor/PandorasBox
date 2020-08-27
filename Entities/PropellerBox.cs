@@ -55,7 +55,7 @@ namespace Celeste.Mod.PandorasBox
             Depth = 100;
             Collider = new Hitbox(8f, 10f, -4f, -10f);
 
-            MaxCharges = 3;
+            MaxCharges = data.Int("maxCharges", 3);
             Charges = MaxCharges;
 
             texture = data.Attr("texture", "default");
