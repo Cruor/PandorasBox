@@ -10,9 +10,6 @@ using Celeste.Mod.Entities;
 
 namespace Celeste.Mod.PandorasBox
 {
-    // TODO - Weird physics when boosting during pickup animation
-    // TODO - Fix weird "warp" on room load
-
     [Tracked(false)]
     [CustomEntity("pandorasBox/propellerBox")]
     class PropellerBox : Actor
@@ -121,8 +118,8 @@ namespace Celeste.Mod.PandorasBox
             }
 
             sprite.AddLoop(spriteKey, "", 0.1f);
-            sprite.Play(spriteKey, true, false);
             sprite.Justify = new Vector2(0.5f, 1f);
+            sprite.Play(spriteKey, true, false);
 
             Add(sprite);
             chargeSprites.Add(sprite);
@@ -435,7 +432,11 @@ namespace Celeste.Mod.PandorasBox
 
         private void onHoldUpdate(Holdable hold)
         {
-            if (Input.Dash.Pressed && Charges > 0)
+            // Boosting during pickup animation can cut the boost of short
+            // Make sure we are ready to boost
+            bool pickupAnimation = hold.Holder.Sprite.CurrentAnimationID == "pickup";
+
+            if (Input.Dash.Pressed && !pickupAnimation && Charges > 0)
             {
                 useCharge(hold);
             }
