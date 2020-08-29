@@ -16,7 +16,7 @@ placements.entities.pandorasBox/timefield.tooltips.color=The color of the partic
 placements.entities.pandorasBox/timefield.tooltips.respectOtherTimeRates=If the timefield should attempt to respect other time rates. This includes things like Crystal Heart and Seekers. Can cause some weird oddities in certain interactions, such as Seeker slowdown.
 
 # Shells
-placements.entities.pandorasBox/shell.tooltips.texture=What version of the shell should be used. Path is "objects/pandorasBox/shells/$texture", where $texture is your input. Look at the assets to see structure.
+placements.entities.pandorasBox/shell.tooltips.texture=What version of the shell should be used. Path is "objects/pandorasBox/shells/$texture/", where $texture is your input. Look at the assets to see structure.
 placements.entities.pandorasBox/shell.tooltips.lights=If the shell should be a light source.
 placements.entities.pandorasBox/shell.tooltips.color=The color of the shell tinting\n"Color1,Color2,Color3" for color animations.
 placements.entities.pandorasBox/shell.tooltips.direction=The start direction of the shell\n-1: Left\n0: Stand still\n1: Right.
@@ -152,12 +152,12 @@ placements.entities.pandorasBox/entityActivator.tooltips.updateInterval=How ofte
 
 # Propeller Box
 placements.entities.pandorasBox/propellerBox.tooltips.maxCharges=The amount of charges the propeller box can have.
-placements.entities.pandorasBox/propellerBox.tooltips.texture=The texture to use for the propeller box. Path is "objects/pandorasBox/propellerBox/$texture/flash_overlay", where $texture is your input. Look at the assets to see structure.
+placements.entities.pandorasBox/propellerBox.tooltips.texture=The texture to use for the propeller box. Path is "objects/pandorasBox/propellerBox/$texture/", where $texture is your input. Look at the assets to see structure.
 placements.entities.pandorasBox/propellerBox.tooltips.flashUseColor=The flash color when using a charge.
 placements.entities.pandorasBox/propellerBox.tooltips.flashChargeColor=The flash color when recharging.
 
 # Clear Pipes
-placements.entities.pandorasBox/clearPipe.tooltips.texture=The texture to use for the clear pipe. Path is "objects/pandorasBox/clearPipe/$texturePath/pipe", where $texture is your input. Look at the assets to see structure.
+placements.entities.pandorasBox/clearPipe.tooltips.texture=The texture to use for the clear pipe. Path is "objects/pandorasBox/clearPipe/$texturePath/", where $texture is your input. Look at the assets to see structure.
 placements.entities.pandorasBox/clearPipe.tooltips.surfaceSound=Override default surface sound. Leave at -1 for default.
 placements.entities.pandorasBox/clearPipe.tooltips.hasPipeSolids=Whether the pipe should spawn solids or not.
 placements.entities.pandorasBox/clearPipe.tooltips.transportSpeed=Which speed the pipe should transport entites at. Speed is pixels per second.
