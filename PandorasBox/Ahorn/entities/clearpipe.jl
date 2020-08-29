@@ -321,7 +321,7 @@ function renderPipe(ctx::Ahorn.Cairo.CairoContext, entity::Maple.Entity)
     texture = "objects/pandorasBox/clearPipe/$type/pipe"
 
     hasSolids =  get(entity, "hasPipeSolids", true)
-    width = get(entity, "pipeWidth", 32)
+    width = Int(get(entity, "pipeWidth", 32))
 
     px, py = Ahorn.position(entity)
     nodes = get(entity, "nodes", [])
@@ -331,7 +331,7 @@ function renderPipe(ctx::Ahorn.Cairo.CairoContext, entity::Maple.Entity)
         for (i, node) in enumerate(nodes)
             startNode, endNode = i == 1, i == length(nodes)
             nx, ny = node
-            nnx, nny = endNode ? (-1, -1) : nodes[i + 1]
+            nnx, nny = endNode ? (-1, -1) : Int.(nodes[i + 1])
 
             renderStraightSection(ctx, entity, texture, px, py, nx, ny, nnx, nny, width, startNode, endNode)
 
