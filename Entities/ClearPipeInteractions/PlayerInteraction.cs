@@ -107,7 +107,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
                 if (Math.Abs(player.Speed.X) > 0.707)
                 {
-                    if (interaction.CurrentClearPipe.HasPipeSolids && (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0) && Input.Grab.Check)
+                    if (interaction.CurrentClearPipe.HasPipeSolids && (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0) && Input.Grab.Check && player.StateMachine.State != Player.StRedDash)
                     {
                         player.Speed = Vector2.Zero;
                     }

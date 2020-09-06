@@ -147,6 +147,8 @@ namespace Celeste.Mod.PandorasBox
             SurfaceSoundIndex = surfaceSound >= 0 ? surfaceSound : 11; // 11 = Deactivated Space Jam, 
 
             addPipeVisuals();
+
+            EnableAssistModeChecks = false;
         }
 
         public static MarioClearPipeSolid FromNodes(Vector2 startNode, Vector2 endNode, Vector2 nextNode, bool startNodeExit, bool endNodeExit, float pipeWidth, string texturePath, int surfaceSound)
