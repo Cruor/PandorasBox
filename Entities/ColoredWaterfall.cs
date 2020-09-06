@@ -100,9 +100,9 @@ namespace Celeste.Mod.PandorasBox
                     Vector2 position = new Vector2(X + 4f, (float)(Y + height + 2.0));
                     level.ParticlesFG.Emit(Water.P_Splash, 1, position, new Vector2(8f, 2f), baseColor, new Vector2(0.0f, -1f).Angle());
                 }
-
-                base.Update();
             }
+
+            base.Update();
         }
 
         public override void Render()
