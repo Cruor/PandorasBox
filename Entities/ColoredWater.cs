@@ -123,16 +123,19 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Render()
         {
-            Color origFill = Water.FillColor;
-            Color origSurface = Water.SurfaceColor;
+            if (visibleOnCamera)
+            {
+                Color origFill = Water.FillColor;
+                Color origSurface = Water.SurfaceColor;
 
-            changeColor(fillColorField, origFill, fillColor);
-            changeColor(surfaceColorField, origSurface, surfaceColor);
+                changeColor(fillColorField, origFill, fillColor);
+                changeColor(surfaceColorField, origSurface, surfaceColor);
 
-            base.Render();
+                base.Render();
 
-            changeColor(fillColorField, fillColor, origFill);
-            changeColor(surfaceColorField, surfaceColor, origSurface);
+                changeColor(fillColorField, fillColor, origFill);
+                changeColor(surfaceColorField, surfaceColor, origSurface);
+            }
         }
 
         public override void Update()
