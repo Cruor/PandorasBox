@@ -12,9 +12,9 @@ namespace Celeste.Mod.PandorasBox
     class ColorHelper
     {
         private static readonly System.Reflection.PropertyInfo[] colorProps = typeof(Color).GetProperties();
+
         public static Color GetColor(String color)
         {
-            
             foreach (var c in colorProps)
             {
                 if (color.Equals(c.Name, StringComparison.OrdinalIgnoreCase))
@@ -33,6 +33,18 @@ namespace Celeste.Mod.PandorasBox
             }
 
             return Color.Transparent;
+        }
+
+        public static List<Color> GetColors(String rawColors, Char sep=',')
+        {
+            List<Color> colors = new List<Color>();
+
+            foreach (String s in rawColors.Split(sep))
+            {
+                colors.Add(ColorHelper.GetColor(s));
+            }
+
+            return colors;
         }
     }
 }

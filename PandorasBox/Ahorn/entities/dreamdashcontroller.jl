@@ -2,12 +2,21 @@ module PandorasBoxDreamDashController
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/dreamDashController" DreamDashController(x::Integer, y::Integer, allowSameDirectionDash::Bool=false, sameDirectionSpeedMultiplier::Number=1.0)
+@mapdef Entity "pandorasBox/dreamDashController" DreamDashController(x::Integer, y::Integer, allowSameDirectionDash::Bool=false, allowDreamDashRedirect::Bool=true, overrideDreamDashSpeed::Bool=false, overrideColors::Bool=false, sameDirectionSpeedMultiplier::Number=1.0, dreamDashSpeed::Number=240.0, activeBackColor::String="Black", disabledBackColor::String="af2e2d", activeLineColor::String="White", disabledLineColor::String="6a8480", particleLayer0Colors::String="ffef11,ff00d0,08a310", particleLayer1Colors::String="5fcde4,7fb25e,e0564c", particleLayer2Colors::String="5b6ee1,CC3B3B,7daa64")
 
 const placements = Ahorn.PlacementDict(
     "Dream Dash Controller (Pandora's Box)" => Ahorn.EntityPlacement(
         DreamDashController
     )
+)
+
+const colors = sort(collect(keys(Ahorn.XNAColors.colors)))
+
+Ahorn.editingOptions(entity::DreamDashController) = Dict{String, Any}(
+    "activeBackColor" => colors,
+    "disabledBackColor" => colors,
+    "activeLineColor" => colors,
+    "disabledLineColor" => colors
 )
 
 const iconMatrix = [

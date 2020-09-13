@@ -14,16 +14,6 @@ using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.PandorasBox
 {
-    public class ValueHolder<T>
-    {
-        public T value;
-
-        public ValueHolder(T value)
-        {
-            this.value = value;
-        }
-    }
-
     [Tracked]
     [CustomEntity("pandorasBox/playerClone")]
     class CloneSpawner : Actor

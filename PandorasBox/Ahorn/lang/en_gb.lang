@@ -140,7 +140,18 @@ placements.entities.pandorasBox/flagToggleSwitch.tooltips.flag=Which flag the sw
 
 # Dream Dash Controller
 placements.entities.pandorasBox/dreamDashController.tooltips.allowSameDirectionDash=If the player should be able to dash in the direction they are currently dashing.
-placements.entities.pandorasBox/dreamDashController.tooltips.sameDirectionSpeedMultiplier=The speed multiplier if the player dashes in the same direction.
+placements.entities.pandorasBox/dreamDashController.tooltips.allowDreamDashRedirect=If the player should be able to dash in a new direction while in space jam.
+placements.entities.pandorasBox/dreamDashController.tooltips.overrideDreamDashSpeed=Whether the space jam should use custom speed.
+placements.entities.pandorasBox/dreamDashController.tooltips.overrideColors=Whether the space jam in the room should use the colors from this controller.
+placements.entities.pandorasBox/dreamDashController.tooltips.sameDirectionSpeedMultiplier=The speed multiplier if the player dashes in the same direction. Allow Same Direction Dash must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.dreamDashSpeed=The speed when entering a space jam. Override Dream Dash Speed must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.activeLineColor=Line color for active space jam. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.disabledLineColor=Line color for deactivated space jam. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.activeBackColor=Background color for active space jam. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.disabledBackColor=Background color for deactivated space jam. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.particleLayer0Colors=Colors for particle layer 0, multiple colors can be used with "," as separator. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.particleLayer1Colors=Colors for particle layer 1, multiple colors can be used with "," as separator. Override Colors must be enabled.
+placements.entities.pandorasBox/dreamDashController.tooltips.particleLayer2Colors=Colors for particle layer 2, multiple colors can be used with "," as separator. Override Colors must be enabled.
 
 # Entity Activator
 placements.entities.pandorasBox/entityActivator.tooltips.flag=Which flag should activate the entity when a flag based activation mode is used.
