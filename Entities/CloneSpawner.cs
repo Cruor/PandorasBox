@@ -25,6 +25,8 @@ namespace Celeste.Mod.PandorasBox
         private string visualMode;
 
         private static FieldInfo spinnerOffset = typeof(CrystalStaticSpinner).GetField("offset", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo playerRespawnTween = typeof(Player).GetField("respawnTween", BindingFlags.Instance | BindingFlags.NonPublic);
+
         private static ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>> spinnerOffsets = new ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>>();
 
         private bool getFlag()
@@ -44,13 +46,37 @@ namespace Celeste.Mod.PandorasBox
         private void handleClone()
         {
             Level level = Scene as Level;
+            List<Entity> players = Scene.Tracker.GetEntities<Player>();
+
+            bool startAsRespawning = false;
+            Player respawningPlayer = null;
 
             if (active)
             {
+                // Start own respawn animation if there is one player respawning
+                foreach (Player player in players)
+                {
+                    Tween respawnTween = (Tween)playerRespawnTween.GetValue(player);
+
+                    if (respawnTween != null && player != clone)
+                    {
+                        startAsRespawning = true;
+                        respawningPlayer = player;
+                    }
+                }
+
                 if (clone == null)
                 {
                     clone = PlayerCloneHelper.CreatePlayer(level, Position, visualMode);
                     level.Add(clone);
+
+                    if (startAsRespawning)
+                    {
+                        clone.Added(Scene);
+                        clone.Awake(Scene);
+
+                        clone.StateMachine.State = respawningPlayer.StateMachine.State;
+                    }
                 }
             }
             else
