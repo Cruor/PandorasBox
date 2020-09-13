@@ -53,7 +53,7 @@ namespace Celeste.Mod.PandorasBox
         public DreamDashController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             AllowSameDirectionDash = data.Bool("allowSameDirectionDash", false);
-            AllowDreamDashRedirection = data.Bool("overrideDreamDashSpeed", true);
+            AllowDreamDashRedirection = data.Bool("allowDreamDashRedirect", true);
             OverrideDreamDashSpeed = data.Bool("overrideDreamDashSpeed", false);
             OverrideColors = data.Bool("overrideColors", false);
 
