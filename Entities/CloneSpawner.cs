@@ -11,6 +11,9 @@ using Celeste.Mod.Entities;
 using System.Reflection;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using MonoMod.Cil;
+using MonoMod;
+using Mono.Cecil.Cil;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -18,7 +21,8 @@ namespace Celeste.Mod.PandorasBox
     [CustomEntity("pandorasBox/playerClone")]
     class CloneSpawner : Actor
     {
-        private Player clone;
+        public Player Clone;
+
         private string flag;
         private int id;
         private bool active;
@@ -48,43 +52,20 @@ namespace Celeste.Mod.PandorasBox
             Level level = Scene as Level;
             List<Entity> players = Scene.Tracker.GetEntities<Player>();
 
-            bool startAsRespawning = false;
-            Player respawningPlayer = null;
-
             if (active)
             {
-                // Start own respawn animation if there is one player respawning
-                foreach (Player player in players)
+                if (Clone == null)
                 {
-                    Tween respawnTween = (Tween)playerRespawnTween.GetValue(player);
-
-                    if (respawnTween != null && player != clone)
-                    {
-                        startAsRespawning = true;
-                        respawningPlayer = player;
-                    }
-                }
-
-                if (clone == null)
-                {
-                    clone = PlayerCloneHelper.CreatePlayer(level, Position, visualMode);
-                    level.Add(clone);
-
-                    if (startAsRespawning)
-                    {
-                        clone.Added(Scene);
-                        clone.Awake(Scene);
-
-                        clone.StateMachine.State = respawningPlayer.StateMachine.State;
-                    }
+                    Clone = PlayerCloneHelper.CreatePlayer(level, Position, visualMode);
+                    level.Add(Clone);
                 }
             }
             else
             {
-                if (clone != null)
+                if (Clone != null)
                 {
-                    clone.RemoveSelf();
-                    clone = null;
+                    Clone.RemoveSelf();
+                    Clone = null;
                 }
             }
         }
@@ -142,10 +123,13 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.CrystalStaticSpinner.Update += CrystalStaticSpinner_Update;
 
             On.Celeste.Player.Die += Player_OnDie;
+            On.Celeste.Player.Added += Player_Added;
 
             On.Celeste.Lookout.Interact += Lookout_Interact;
             On.Celeste.Lookout.LookRoutine += Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting += Lookout_StopInteracting;
+
+            IL.Celeste.TalkComponent.Update += TalkComponent_Update;
         }
 
         public static void Unload()
@@ -156,10 +140,13 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.CrystalStaticSpinner.Update -= CrystalStaticSpinner_Update;
 
             On.Celeste.Player.Die -= Player_OnDie;
+            On.Celeste.Player.Added -= Player_Added;
 
             On.Celeste.Lookout.Interact -= Lookout_Interact;
             On.Celeste.Lookout.LookRoutine -= Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting -= Lookout_StopInteracting;
+
+            IL.Celeste.TalkComponent.Update -= TalkComponent_Update;
         }
 
         private static void CrystalStaticSpinner_Update(On.Celeste.CrystalStaticSpinner.orig_Update orig, CrystalStaticSpinner self)
@@ -236,6 +223,28 @@ namespace Celeste.Mod.PandorasBox
             return null;
         }
 
+        private static void Player_Added(On.Celeste.Player.orig_Added orig, Player self, Scene scene)
+        {
+            orig(self, scene);
+
+            List<Player> clones = scene.Tracker.GetEntities<CloneSpawner>().Select(c => (c as CloneSpawner).Clone).ToList<Player>();
+            List<Entity> players = scene.Tracker.GetEntities<Player>();
+
+            // Start own respawn animation if there is one player respawning
+            foreach (Player player in players)
+            {
+                if (!clones.Contains(player))
+                {
+                    Tween respawnTween = (Tween)playerRespawnTween.GetValue(player);
+
+                    if (respawnTween != null && player != self)
+                    {
+                        self.StateMachine.State = player.StateMachine.State;
+                    }
+                }
+            }
+        }
+
         private static IEnumerator Lookout_LookRoutine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
         {
             yield return orig(self, player);
@@ -265,6 +274,63 @@ namespace Celeste.Mod.PandorasBox
             foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
             {
                 player2.StateMachine.State = Player.StDummy;
+            }
+        }
+
+
+        private static void TalkComponent_Update(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchStloc(1)))
+            {
+                Logger.Log($"{PandorasBoxMod.LoggerTag}/TalkComponent", $"Patching talk component at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
+                // this
+                cursor.Emit(OpCodes.Ldarg, 0); 
+
+                // flag, the current value we are overriding
+                cursor.Emit(OpCodes.Ldloc, 1);
+
+                // this.disableDelay
+                cursor.Emit(OpCodes.Ldarg, 0);
+                cursor.Emit(OpCodes.Ldfld, typeof(TalkComponent).GetField("disableDelay", BindingFlags.Instance | BindingFlags.NonPublic));
+
+                cursor.EmitDelegate<Func<Object, bool, float, bool>>((talkerObject, current, disableDelay) =>
+                {
+                    TalkComponent talker = talkerObject as TalkComponent;
+                    List<Entity> players = talker.Scene.Tracker.GetEntities<Player>();
+
+                    if (players.Count == 1)
+                    {
+                        return current;
+                    }
+
+                    // Check based on vanilla version, except across all player entities
+
+                    if (disableDelay >= 0.05f)
+                    {
+                        return false;
+                    }
+
+                    foreach (Player player in players)
+                    {
+                        if (player.CollideRect(new Rectangle((int)(talker.Entity.X + talker.Bounds.X), (int)(talker.Entity.Y + talker.Bounds.Y), talker.Bounds.Width, talker.Bounds.Height)) &&
+                            player.OnGround() &&
+                            player.Bottom < talker.Entity.Y + talker.Bounds.Bottom + 4f &&
+                            player.StateMachine.State == 0 &&
+                            (!talker.PlayerMustBeFacing || Math.Abs(player.X - talker.Entity.X) <= talker.Bounds.Width || player.Facing == (Facings)Math.Sign(talker.Entity.X - player.X)) &&
+                            (TalkComponent.PlayerOver == null || TalkComponent.PlayerOver == talker))
+                        {
+                            return true;
+                        }
+
+                    }
+
+                    return false;
+                });
+
+                cursor.Emit(OpCodes.Stloc, 1);
             }
         }
     }

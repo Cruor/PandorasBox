@@ -42,6 +42,10 @@
       <HintPath>..\..\..\..\Games\EGS\Celeste\MMHOOK_Celeste.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\..\..\Games\EGS\Celeste\Mono.Cecil.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\Games\EGS\Celeste\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
