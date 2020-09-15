@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -197,8 +197,8 @@ namespace Celeste.Mod.PandorasBox
             int deadPlayers = players.Where(p => p.Dead).Count();
             PlayerDeadBody body = self.Scene.Entities.FindFirst<PlayerDeadBody>();
 
-            // If there is a single player there will never be a dead body in the screen when they die
-            if (body == null)
+            // Kill all other players with "fake deaths" if we are the first player to die
+            if (deadPlayers == 0)
             {
                 if (!SaveData.Instance.Assists.Invincible || evenIfInvincible)
                 {
@@ -211,7 +211,11 @@ namespace Celeste.Mod.PandorasBox
                                 self.Leader.Followers.Add(follower);
                             }
 
-                            player.Scene.Add(new CustomPlayerDeadBody(player, Vector2.Zero, false, true));
+                            if (!player.Dead)
+                            {
+                                player.Scene.Add(new CustomPlayerDeadBody(player, Vector2.Zero, false, true));
+                            }
+
                             player.Scene.Remove(player);
                         }
                     }
