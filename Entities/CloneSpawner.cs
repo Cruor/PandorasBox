@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -32,6 +32,7 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo playerRespawnTween = typeof(Player).GetField("respawnTween", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>> spinnerOffsets = new ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>>();
+        private static ConditionalWeakTable<Player, Player> syncedRespawn = new ConditionalWeakTable<Player, Player>();
 
         private bool getFlag()
         {
@@ -124,6 +125,7 @@ namespace Celeste.Mod.PandorasBox
 
             On.Celeste.Player.Die += Player_OnDie;
             On.Celeste.Player.Added += Player_Added;
+            On.Celeste.Player.Update += Player_Update;
 
             On.Celeste.Lookout.Interact += Lookout_Interact;
             On.Celeste.Lookout.LookRoutine += Lookout_LookRoutine;
@@ -141,6 +143,7 @@ namespace Celeste.Mod.PandorasBox
 
             On.Celeste.Player.Die -= Player_OnDie;
             On.Celeste.Player.Added -= Player_Added;
+            On.Celeste.Player.Update -= Player_Update;
 
             On.Celeste.Lookout.Interact -= Lookout_Interact;
             On.Celeste.Lookout.LookRoutine -= Lookout_LookRoutine;
@@ -244,7 +247,23 @@ namespace Celeste.Mod.PandorasBox
                     if (respawnTween != null && player != self)
                     {
                         self.StateMachine.State = player.StateMachine.State;
+                        syncedRespawn.Add(self, player);
                     }
+                }
+            }
+        }
+
+        private static void Player_Update(On.Celeste.Player.orig_Update orig, Player self)
+        {
+            orig(self);
+
+            // Make sure we aren't a frame behind on the synced respawn animation
+            if (syncedRespawn.TryGetValue(self, out Player synced))
+            {
+                if (playerRespawnTween.GetValue(synced) == null)
+                {
+                    self.StateMachine.State = synced.StateMachine.State;
+                    syncedRespawn.Remove(self);
                 }
             }
         }
