@@ -19,6 +19,7 @@ namespace Celeste.Mod.PandorasBox
         public bool OverrideDreamDashSpeed;
         public bool OverrideColors;
         public bool NeverSlowDown;
+        public bool BounceOnCollision;
 
         private float sameDirectionSpeedMultiplier;
         private float dreamDashSpeed;
@@ -52,6 +53,8 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo dreamBlockParticleLayer = dreamBlockParticleType.GetField("Layer", BindingFlags.Instance | BindingFlags.Public);
         private static FieldInfo dreamBlockParticleColor = dreamBlockParticleType.GetField("Color", BindingFlags.Instance | BindingFlags.Public);
 
+        private static MethodInfo playerDreamDashedIntoSolid = typeof(Player).GetMethod("DreamDashedIntoSolid", BindingFlags.Instance | BindingFlags.NonPublic);
+
         public DreamDashController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             AllowSameDirectionDash = data.Bool("allowSameDirectionDash", false);
@@ -59,6 +62,7 @@ namespace Celeste.Mod.PandorasBox
             OverrideDreamDashSpeed = data.Bool("overrideDreamDashSpeed", false);
             OverrideColors = data.Bool("overrideColors", false);
             NeverSlowDown = data.Bool("neverSlowDown", false);
+            BounceOnCollision = data.Bool("bounceOnCollision", false);
 
             sameDirectionSpeedMultiplier = data.Float("sameDirectionSpeedMultiplier", 1.0f);
             dreamDashSpeed = data.Float("dreamDashSpeed", 240f);
@@ -116,6 +120,18 @@ namespace Celeste.Mod.PandorasBox
             }
 
             return false;
+        }
+
+        public void BouncePlayer(Player player)
+        {
+            if (Math.Abs(player.Speed.X) > Math.Abs(player.Speed.Y))
+            {
+                player.Speed.X *= -1;
+            }
+            else
+            {
+                player.Speed.Y *= -1;
+            }
         }
 
         private void dreamDashStart(Player player)
@@ -286,6 +302,46 @@ namespace Celeste.Mod.PandorasBox
             RemoveColors();
 
             base.SceneEnd(scene);
+        }
+
+        private static int Player_DreamDashUpdate(On.Celeste.Player.orig_DreamDashUpdate orig, Player self)
+        {
+            DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
+
+            if (controller?.BounceOnCollision ?? false)
+            {
+                Vector2 moveCheckVector = self.Speed * Engine.DeltaTime;
+
+                self.NaiveMove(moveCheckVector);
+
+                DreamBlock dreamBlock = self.CollideFirst<DreamBlock>();
+
+                if (dreamBlock == null)
+                {
+                    bool inSolid = (bool)playerDreamDashedIntoSolid.Invoke(self, new Object[] { });
+                    if (inSolid)
+                    {
+                        self.NaiveMove(-moveCheckVector);
+                        controller.BouncePlayer(self);
+                    }
+                }
+                else
+                {
+                    self.NaiveMove(-moveCheckVector);
+                }
+            }
+
+            return orig(self);
+        }
+
+        public static void Load()
+        {
+            On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
+        }
+
+        public static void Unload()
+        {
+            On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
         }
     }
 }

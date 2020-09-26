@@ -37,6 +37,7 @@ namespace Celeste.Mod.PandorasBox
             WaterDrowningController.Load();
             TimeField.Load();
             MarioClearPipe.Load();
+            DreamDashController.Load();
         }
 
         public override void Unload()
@@ -45,6 +46,7 @@ namespace Celeste.Mod.PandorasBox
             WaterDrowningController.Unload();
             TimeField.Unload();
             MarioClearPipe.Unload();
+            DreamDashController.Unload();
         }
     }
 }
