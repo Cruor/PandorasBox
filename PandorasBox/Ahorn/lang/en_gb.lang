@@ -142,6 +142,7 @@ placements.entities.pandorasBox/flagToggleSwitch.tooltips.flag=Which flag the sw
 placements.entities.pandorasBox/dreamDashController.tooltips.allowSameDirectionDash=If the player should be able to dash in the direction they are currently dashing.
 placements.entities.pandorasBox/dreamDashController.tooltips.allowDreamDashRedirect=If the player should be able to dash in a new direction while in space jam.
 placements.entities.pandorasBox/dreamDashController.tooltips.overrideDreamDashSpeed=Whether the space jam should use custom speed.
+placements.entities.pandorasBox/dreamDashController.tooltips.neverSlowDown=Player will use and keep speed it has on entry if it is faster than a normal dream dash.
 placements.entities.pandorasBox/dreamDashController.tooltips.overrideColors=Whether the space jam in the room should use the colors from this controller.
 placements.entities.pandorasBox/dreamDashController.tooltips.sameDirectionSpeedMultiplier=The speed multiplier if the player dashes in the same direction. Allow Same Direction Dash must be enabled.
 placements.entities.pandorasBox/dreamDashController.tooltips.dreamDashSpeed=The speed when entering a space jam. Override Dream Dash Speed must be enabled.
