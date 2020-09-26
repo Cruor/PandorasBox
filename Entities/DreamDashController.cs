@@ -38,9 +38,6 @@ namespace Celeste.Mod.PandorasBox
 
         private bool addedColors;
 
-        private static ConditionalWeakTable<Player, ValueHolder<int>> playerStates = new ConditionalWeakTable<Player, ValueHolder<int>>();
-        private static ConditionalWeakTable<Player, ValueHolder<Vector2>> playerPreEnterSpeeds = new ConditionalWeakTable<Player, ValueHolder<Vector2>>();
-
         private static FieldInfo playerDashCooldownTimerMethod = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static FieldInfo dreamBlockActiveBackColor = typeof(DreamBlock).GetField("activeBackColor", BindingFlags.Static | BindingFlags.NonPublic);
@@ -122,6 +119,37 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
+        // Do a bounce check and bounce if possible
+        public bool AttemptBounce(Player player)
+        {
+            if (BounceOnCollision)
+            {
+                Vector2 moveCheckVector = player.Speed * Engine.DeltaTime;
+
+                player.NaiveMove(moveCheckVector);
+
+                DreamBlock dreamBlock = player.CollideFirst<DreamBlock>();
+
+                if (dreamBlock == null)
+                {
+                    bool inSolid = (bool)playerDreamDashedIntoSolid.Invoke(player, new Object[] { });
+                    if (inSolid)
+                    {
+                        player.NaiveMove(-moveCheckVector);
+                        BouncePlayer(player);
+
+                        return true;
+                    }
+                }
+                else
+                {
+                    player.NaiveMove(-moveCheckVector);
+                }
+            }
+
+            return false;
+        }
+
         public void BouncePlayer(Player player)
         {
             if (Math.Abs(player.Speed.X) > Math.Abs(player.Speed.Y))
@@ -134,10 +162,8 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private void dreamDashStart(Player player)
+        public void DreamDashStart(Player player, Vector2 preEnterSpeed)
         {
-            Vector2 enterSpeed = getPlayerPreEnterSpeed(player);
-
             if (OverrideDreamDashSpeed)
             {
                 player.Speed = player.DashDir * dreamDashSpeed;
@@ -145,59 +171,10 @@ namespace Celeste.Mod.PandorasBox
 
             if (NeverSlowDown)
             {
-                if (player.Speed.LengthSquared() < enterSpeed.LengthSquared())
+                if (player.Speed.LengthSquared() < preEnterSpeed.LengthSquared())
                 {
-                    player.Speed = player.DashDir * enterSpeed.Length();
+                    player.Speed = player.DashDir * preEnterSpeed.Length();
                 }
-            }
-        }
-
-        private int getNewPlayerState(Player player)
-        {
-            int currentState = player.StateMachine.State;
-
-            if (playerStates.TryGetValue(player, out var holder))
-            {
-                if (holder.value != currentState)
-                {
-                    holder.value = currentState;
-
-                    return currentState;
-                }
-                else
-                {
-                    return -1;
-                }
-            }
-            else
-            {
-                playerStates.Add(player, new ValueHolder<int>(currentState));
-            }
-
-            return -1;
-        }
-
-        private void setPlayerPreEnterSpeed(Player player)
-        {
-            if (playerPreEnterSpeeds.TryGetValue(player, out var holder))
-            {
-                holder.value = player.Speed;
-            }
-            else
-            {
-                playerPreEnterSpeeds.Add(player, new ValueHolder<Vector2>(player.Speed));
-            }
-        }
-
-        private Vector2 getPlayerPreEnterSpeed(Player player)
-        {
-            if (playerPreEnterSpeeds.TryGetValue(player, out var holder))
-            {
-                return holder.value;
-            }
-            else
-            {
-                return Vector2.Zero;
             }
         }
 
@@ -258,16 +235,6 @@ namespace Celeste.Mod.PandorasBox
                 {
                     dreamDashRedirect(player);
                 }
-
-                if (player.StateMachine.State != Player.StDreamDash)
-                {
-                    setPlayerPreEnterSpeed(player);
-                }
-
-                if (getNewPlayerState(player) == Player.StDreamDash)
-                {
-                    dreamDashStart(player);
-                }
             }
         }
 
@@ -308,40 +275,31 @@ namespace Celeste.Mod.PandorasBox
         {
             DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
 
-            if (controller?.BounceOnCollision ?? false)
-            {
-                Vector2 moveCheckVector = self.Speed * Engine.DeltaTime;
-
-                self.NaiveMove(moveCheckVector);
-
-                DreamBlock dreamBlock = self.CollideFirst<DreamBlock>();
-
-                if (dreamBlock == null)
-                {
-                    bool inSolid = (bool)playerDreamDashedIntoSolid.Invoke(self, new Object[] { });
-                    if (inSolid)
-                    {
-                        self.NaiveMove(-moveCheckVector);
-                        controller.BouncePlayer(self);
-                    }
-                }
-                else
-                {
-                    self.NaiveMove(-moveCheckVector);
-                }
-            }
+            controller?.AttemptBounce(self);
 
             return orig(self);
+        }
+
+        private static void Player_DreamDashBegin(On.Celeste.Player.orig_DreamDashBegin orig, Player self)
+        {
+            DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
+            Vector2 preEnterSpeed = self.Speed;
+
+            orig(self);
+
+            controller?.DreamDashStart(self, preEnterSpeed);
         }
 
         public static void Load()
         {
             On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
+            On.Celeste.Player.DreamDashBegin += Player_DreamDashBegin;
         }
 
         public static void Unload()
         {
             On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
+            On.Celeste.Player.DreamDashBegin -= Player_DreamDashBegin;
         }
     }
 }
