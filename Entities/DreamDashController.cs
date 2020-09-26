@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.Entities;
+using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -181,16 +181,19 @@ namespace Celeste.Mod.PandorasBox
         {
             Array particles = dreamBlockParticles.GetValue(dreamBlock) as Array;
 
-            for (int i = 0; i < particles.Length; i++)
+            if (particles != null)
             {
-                var particle = particles.GetValue(i);
+                for (int i = 0; i < particles.Length; i++)
+                {
+                    var particle = particles.GetValue(i);
 
-                int layer = (int)dreamBlockParticleLayer.GetValue(particle);
-                Color color = Calc.Random.Choose(particleLayerColors[layer]);
+                    int layer = (int)dreamBlockParticleLayer.GetValue(particle);
+                    Color color = Calc.Random.Choose(particleLayerColors[layer]);
 
-                dreamBlockParticleColor.SetValue(particle, color);
+                    dreamBlockParticleColor.SetValue(particle, color);
 
-                particles.SetValue(particle, i);
+                    particles.SetValue(particle, i);
+                }
             }
         }
 
