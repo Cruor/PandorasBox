@@ -142,8 +142,6 @@ namespace Celeste.Mod.PandorasBox
             On.Monocle.VirtualButton.Update += VirtualButton_Update;
 
             IL.Celeste.TalkComponent.Update += TalkComponent_Update;
-
-            Everest.LogDetours();
         }
 
         public static void Unload()
