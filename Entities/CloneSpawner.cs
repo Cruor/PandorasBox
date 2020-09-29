@@ -31,8 +31,14 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo spinnerOffset = typeof(CrystalStaticSpinner).GetField("offset", BindingFlags.Instance | BindingFlags.NonPublic);
         private static FieldInfo playerRespawnTween = typeof(Player).GetField("respawnTween", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private static FieldInfo virtualButtonConsumed = typeof(VirtualButton).GetField("consumed", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo virtualButtonBufferCounter = typeof(VirtualButton).GetField("bufferCounter", BindingFlags.Instance | BindingFlags.NonPublic);
+
         private static ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>> spinnerOffsets = new ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>>();
         private static ConditionalWeakTable<Player, Player> syncedRespawn = new ConditionalWeakTable<Player, Player>();
+
+        private static Dictionary<VirtualButton, bool> consumedPresses = new Dictionary<VirtualButton, bool>();
+        private static Dictionary<VirtualButton, float> bufferCounters = new Dictionary<VirtualButton, float>();
 
         private bool getFlag()
         {
@@ -131,7 +137,13 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Lookout.LookRoutine += Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting += Lookout_StopInteracting;
 
+            On.Monocle.VirtualButton.ConsumePress += VirtualButton_ConsumePress;
+            On.Monocle.VirtualButton.ConsumeBuffer += VirtualButton_ConsumeBuffer;
+            On.Monocle.VirtualButton.Update += VirtualButton_Update;
+
             IL.Celeste.TalkComponent.Update += TalkComponent_Update;
+
+            Everest.LogDetours();
         }
 
         public static void Unload()
@@ -149,7 +161,34 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Lookout.LookRoutine -= Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting -= Lookout_StopInteracting;
 
+            On.Monocle.VirtualButton.ConsumePress -= VirtualButton_ConsumePress;
+            On.Monocle.VirtualButton.ConsumeBuffer -= VirtualButton_ConsumeBuffer;
+            On.Monocle.VirtualButton.Update -= VirtualButton_Update;
+
             IL.Celeste.TalkComponent.Update -= TalkComponent_Update;
+        }
+
+        private static void VirtualButton_Update(On.Monocle.VirtualButton.orig_Update orig, VirtualButton self)
+        {
+            consumedPresses.Remove(self);
+            bufferCounters.Remove(self);
+
+            orig(self);
+        }
+
+        private static void VirtualButton_ConsumePress(On.Monocle.VirtualButton.orig_ConsumePress orig, VirtualButton self)
+        {
+            consumedPresses[self] = true;
+            bufferCounters[self] = (float)virtualButtonBufferCounter.GetValue(self);
+
+            orig(self);
+        }
+
+        private static void VirtualButton_ConsumeBuffer(On.Monocle.VirtualButton.orig_ConsumeBuffer orig, VirtualButton self)
+        {
+            bufferCounters[self] = (float)virtualButtonBufferCounter.GetValue(self);
+
+            orig(self);
         }
 
         private static void CrystalStaticSpinner_Update(On.Celeste.CrystalStaticSpinner.orig_Update orig, CrystalStaticSpinner self)
@@ -255,6 +294,20 @@ namespace Celeste.Mod.PandorasBox
 
         private static void Player_Update(On.Celeste.Player.orig_Update orig, Player self)
         {
+            // Reset consumed if it was consumed in a different player
+            foreach (KeyValuePair<VirtualButton, bool> entry in consumedPresses)
+            {
+                if (entry.Value)
+                {
+                    virtualButtonConsumed.SetValue(entry.Key, false);
+                }
+            }
+
+            foreach (KeyValuePair<VirtualButton, float> entry in bufferCounters)
+            {
+                virtualButtonBufferCounter.SetValue(entry.Key, entry.Value);
+            }
+
             orig(self);
 
             // Make sure we aren't a frame behind on the synced respawn animation
@@ -299,7 +352,6 @@ namespace Celeste.Mod.PandorasBox
                 player2.StateMachine.State = Player.StDummy;
             }
         }
-
 
         private static void TalkComponent_Update(ILContext il)
         {
@@ -347,7 +399,6 @@ namespace Celeste.Mod.PandorasBox
                         {
                             return true;
                         }
-
                     }
 
                     return false;
