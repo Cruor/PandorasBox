@@ -37,8 +37,8 @@ namespace Celeste.Mod.PandorasBox
         private static ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>> spinnerOffsets = new ConditionalWeakTable<CrystalStaticSpinner, ValueHolder<float>>();
         private static ConditionalWeakTable<Player, Player> syncedRespawn = new ConditionalWeakTable<Player, Player>();
 
-        private static Dictionary<VirtualButton, bool> consumedPresses = new Dictionary<VirtualButton, bool>();
-        private static Dictionary<VirtualButton, float> bufferCounters = new Dictionary<VirtualButton, float>();
+        public static Dictionary<VirtualButton, bool> ConsumedPresses = new Dictionary<VirtualButton, bool>();
+        public static Dictionary<VirtualButton, float> BufferCounters = new Dictionary<VirtualButton, float>();
 
         private bool getFlag()
         {
@@ -137,11 +137,18 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Lookout.LookRoutine += Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting += Lookout_StopInteracting;
 
-            On.Monocle.VirtualButton.ConsumePress += VirtualButton_ConsumePress;
-            On.Monocle.VirtualButton.ConsumeBuffer += VirtualButton_ConsumeBuffer;
             On.Monocle.VirtualButton.Update += VirtualButton_Update;
 
             IL.Celeste.TalkComponent.Update += TalkComponent_Update;
+
+            IL.Celeste.Player.Jump += patchConsumeBuffer;
+            IL.Celeste.Player.SuperJump += patchConsumeBuffer;
+            IL.Celeste.Player.SuperWallJump += patchConsumeBuffer;
+            IL.Celeste.Player.StartDash += patchConsumeBuffer;
+            IL.Celeste.Player.SwimUpdate += patchConsumeBuffer;
+            IL.Celeste.Player.HitSquashUpdate += patchConsumeBuffer;
+
+            IL.Celeste.Player.BoostUpdate += patchConsumePress;
         }
 
         public static void Unload()
@@ -159,34 +166,69 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Lookout.LookRoutine -= Lookout_LookRoutine;
             On.Celeste.Lookout.StopInteracting -= Lookout_StopInteracting;
 
-            On.Monocle.VirtualButton.ConsumePress -= VirtualButton_ConsumePress;
-            On.Monocle.VirtualButton.ConsumeBuffer -= VirtualButton_ConsumeBuffer;
             On.Monocle.VirtualButton.Update -= VirtualButton_Update;
 
             IL.Celeste.TalkComponent.Update -= TalkComponent_Update;
+
+            IL.Celeste.Player.Jump -= patchConsumeBuffer;
+            IL.Celeste.Player.SuperJump -= patchConsumeBuffer;
+            IL.Celeste.Player.SuperWallJump -= patchConsumeBuffer;
+            IL.Celeste.Player.StartDash -= patchConsumeBuffer;
+            IL.Celeste.Player.SwimUpdate -= patchConsumeBuffer;
+            IL.Celeste.Player.HitSquashUpdate -= patchConsumeBuffer;
+
+            IL.Celeste.Player.BoostUpdate -= patchConsumePress;
         }
 
         private static void VirtualButton_Update(On.Monocle.VirtualButton.orig_Update orig, VirtualButton self)
         {
-            consumedPresses.Remove(self);
-            bufferCounters.Remove(self);
+            ConsumedPresses.Remove(self);
+            BufferCounters.Remove(self);
 
             orig(self);
         }
 
-        private static void VirtualButton_ConsumePress(On.Monocle.VirtualButton.orig_ConsumePress orig, VirtualButton self)
+        private static void patchConsumeBuffer(ILContext il)
         {
-            consumedPresses[self] = true;
-            bufferCounters[self] = (float)virtualButtonBufferCounter.GetValue(self);
+            ILCursor cursor = new ILCursor(il);
 
-            orig(self);
+            while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt<VirtualButton>("ConsumeBuffer")))
+            {
+                Logger.Log($"{PandorasBoxMod.LoggerTag}/VirtualButton", $"Patching ConsumeBuffer at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
+                cursor.Emit(OpCodes.Dup);
+                cursor.Emit(OpCodes.Dup);
+                cursor.Emit(OpCodes.Ldfld, typeof(VirtualButton).GetField("bufferCounter", BindingFlags.Instance | BindingFlags.NonPublic));
+
+                cursor.EmitDelegate<Action<Object, float>>((object button, float bufferCounter) =>
+                {
+                    BufferCounters[button as VirtualButton] = bufferCounter;
+                });
+
+                cursor.Index++;
+            }
         }
 
-        private static void VirtualButton_ConsumeBuffer(On.Monocle.VirtualButton.orig_ConsumeBuffer orig, VirtualButton self)
+        private static void patchConsumePress(ILContext il)
         {
-            bufferCounters[self] = (float)virtualButtonBufferCounter.GetValue(self);
+            ILCursor cursor = new ILCursor(il);
 
-            orig(self);
+            while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt<VirtualButton>("ConsumePress")))
+            {
+                Logger.Log($"{PandorasBoxMod.LoggerTag}/VirtualButton", $"Patching ConsumePress at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
+                cursor.Emit(OpCodes.Dup);
+                cursor.Emit(OpCodes.Dup);
+                cursor.Emit(OpCodes.Ldfld, typeof(VirtualButton).GetField("bufferCounter", BindingFlags.Instance | BindingFlags.NonPublic));
+
+                cursor.EmitDelegate<Action<Object, float>>((object button, float bufferCounter) =>
+                {
+                    BufferCounters[button as VirtualButton] = bufferCounter;
+                    ConsumedPresses[button as VirtualButton] = true;
+                });
+
+                cursor.Index++;
+            }
         }
 
         private static void CrystalStaticSpinner_Update(On.Celeste.CrystalStaticSpinner.orig_Update orig, CrystalStaticSpinner self)
@@ -293,7 +335,7 @@ namespace Celeste.Mod.PandorasBox
         private static void Player_Update(On.Celeste.Player.orig_Update orig, Player self)
         {
             // Reset consumed if it was consumed in a different player
-            foreach (KeyValuePair<VirtualButton, bool> entry in consumedPresses)
+            foreach (KeyValuePair<VirtualButton, bool> entry in ConsumedPresses)
             {
                 if (entry.Value)
                 {
@@ -301,7 +343,7 @@ namespace Celeste.Mod.PandorasBox
                 }
             }
 
-            foreach (KeyValuePair<VirtualButton, float> entry in bufferCounters)
+            foreach (KeyValuePair<VirtualButton, float> entry in BufferCounters)
             {
                 virtualButtonBufferCounter.SetValue(entry.Key, entry.Value);
             }
