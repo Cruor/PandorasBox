@@ -75,6 +75,7 @@
     <Compile Include="Entities\EntityActivator.cs" />
     <Compile Include="Entities\FlagToggleSwitch.cs" />
     <Compile Include="Entities\Gate.cs" />
+    <Compile Include="Entities\GrapplePoint.cs" />
     <Compile Include="Entities\InteractibleHoldable.cs" />
     <Compile Include="Entities\Lamp.cs" />
     <Compile Include="Entities\LaserDetectorActor.cs" />
