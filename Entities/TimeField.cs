@@ -244,11 +244,11 @@ namespace Celeste.Mod.PandorasBox
                 switch (layer)
                 {
                     case 0:
-                        particleTexture = particleTextures[3 - (int)((particle.TimeOffset * 4.0 + animTimer) % 4.0)];
+                        particleTexture = particleTextures[3 - Math.Abs((int)((particle.TimeOffset * 4.0 + animTimer) % 4.0))];
                         break;
 
                     case 1:
-                        particleTexture = particleTextures[1 + (int)((particle.TimeOffset * 2.0 + animTimer) % 2.0)];
+                        particleTexture = particleTextures[1 + Math.Abs((int)((particle.TimeOffset * 2.0 + animTimer) % 2.0))];
                         break;
 
                     default:
