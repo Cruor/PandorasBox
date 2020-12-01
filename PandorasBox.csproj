@@ -85,6 +85,7 @@
     <Compile Include="Entities\MarioClearPipeInteraction.cs" />
     <Compile Include="Entities\MarioClearPipeSolid.cs" />
     <Compile Include="Entities\PropellerBox.cs" />
+    <Compile Include="Helpers\EntityHelper.cs" />
     <Compile Include="Helpers\MarioClearPipeHelper.cs" />
     <Compile Include="Helpers\NoteHelper.cs" />
     <Compile Include="Helpers\TypeHelper.cs" />

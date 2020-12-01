@@ -361,16 +361,27 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
+        private static void setPlayerState(List<Entity> players, Entity ignore, int state)
+        {
+            foreach (Player player2 in players)
+            {
+                if (player2 != ignore)
+                {
+                    player2.StateMachine.State = state;
+                }
+            }
+        }
+
         private static IEnumerator Lookout_LookRoutine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
         {
-            yield return orig(self, player);
+            List<Entity> players = self.SceneAs<Level>().Tracker.GetEntities<Player>();
+            Entity closest = EntityHelper.GetClosestEntity(self, players);
 
-            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
-            {
-                player2.StateMachine.State = Player.StNormal;
-            }
+            setPlayerState(players, closest, Player.StDummy);
 
-            yield break;
+            yield return orig(self, closest as Player);
+
+            setPlayerState(players, closest, Player.StNormal);
         }
 
         private static void Lookout_StopInteracting(On.Celeste.Lookout.orig_StopInteracting orig, Lookout self)
