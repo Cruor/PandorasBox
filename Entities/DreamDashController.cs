@@ -135,16 +135,17 @@ namespace Celeste.Mod.PandorasBox
                     bool inSolid = (bool)playerDreamDashedIntoSolid.Invoke(player, new Object[] { });
                     if (inSolid)
                     {
+                        // Move the player out of the wall properly, then bounce
                         player.NaiveMove(-moveCheckVector);
                         BouncePlayer(player);
 
                         return true;
                     }
+
                 }
-                else
-                {
-                    player.NaiveMove(-moveCheckVector);
-                }
+
+                // Make sure we undo the check movement
+                player.NaiveMove(-moveCheckVector);
             }
 
             return false;
@@ -152,7 +153,23 @@ namespace Celeste.Mod.PandorasBox
 
         public void BouncePlayer(Player player)
         {
-            if (Math.Abs(player.Speed.X) > Math.Abs(player.Speed.Y))
+            float speedX = Math.Abs(player.Speed.X);
+            float speedY = Math.Abs(player.Speed.Y);
+
+            bool horizontal = speedX > speedY;
+
+            if (speedX == speedY)
+            {
+                // Rough check to see if this was a vertical or horizontal collision
+                Vector2 moveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0);
+
+                player.NaiveMove(moveCheckVector);
+                horizontal = player.CollideFirst<DreamBlock>() == null;
+                player.NaiveMove(-moveCheckVector);
+
+            }
+
+            if (horizontal)
             {
                 player.Speed.X *= -1;
             }
