@@ -28,6 +28,7 @@ namespace Celeste.Mod.PandorasBox
         private float deceleration;
         private float maxSpeed;
         private float breakingDuration;
+        private bool keepCarSpeedOnExit;
 
         private float nitroAcceleration;
         private float nitroMaxDuration;
@@ -81,6 +82,7 @@ namespace Celeste.Mod.PandorasBox
             this.maxSpeed = float.Parse(data.Attr("maxSpeed", "384"));
 
             this.brokenDoor = bool.Parse(data.Attr("brokenDoor", "false"));
+            this.keepCarSpeedOnExit = bool.Parse(data.Attr("keepCarSpeedOnExit", "false"));
 
             this.nitroAcceleration = float.Parse(data.Attr("nitroAcceleration", "448"));
             this.nitroMaxDuration = float.Parse(data.Attr("nitroMaxDuration", "3"));
@@ -164,6 +166,17 @@ namespace Celeste.Mod.PandorasBox
 
             player.Visible = true;
             player.Position = this.Position;
+
+            if (keepCarSpeedOnExit) {
+                player.Speed = this.speed;
+
+                // Launch the player upwards a bit if the car is driving fast
+                if (Math.Abs(speed.X) > this.maxSpeed * 0.85)
+                {
+                    player.Speed.Y -= 180f;
+                }
+            }
+
             player.StateMachine.Locked = false;
             player.StateMachine.State = Player.StNormal;
             player.ForceCameraUpdate = false;

@@ -2,7 +2,7 @@ module PandorasBoxIntroCar
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/introCar" IntroCar(x::Integer, y::Integer, acceleration::Number=256.0, deceleration::Number=384.0, maxSpeed::Number=384.0, brokenDoor::Bool=false, nitroAcceleration::Number=448.0, nitroMaxDuration::Number=3.0, nitroRegenMultiplier::Number=0.2, facing::Integer=1)
+@mapdef Entity "pandorasBox/introCar" IntroCar(x::Integer, y::Integer, acceleration::Number=256.0, deceleration::Number=384.0, maxSpeed::Number=384.0, brokenDoor::Bool=false, keepCarSpeedOnExit::Bool=true, nitroAcceleration::Number=448.0, nitroMaxDuration::Number=3.0, nitroRegenMultiplier::Number=0.2, facing::Integer=1)
 
 const placements = Ahorn.PlacementDict(
     "Intro Car (Pandora's Box)" => Ahorn.EntityPlacement(
