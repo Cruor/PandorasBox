@@ -251,17 +251,6 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public override void Update()
-        {
-            foreach (Player player in Scene.Tracker.GetEntities<Player>())
-            {
-                if (Input.Dash.Pressed && Input.Aim.Value != Vector2.Zero)
-                {
-                    dreamDashRedirect(player);
-                }
-            }
-        }
-
         public override void Added(Scene scene)
         {
             AddColors();
@@ -327,10 +316,26 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
+        private static void Player_Update(On.Celeste.Player.orig_Update orig, Player self)
+        {
+            DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
+
+            if (controller != null)
+            {
+                if (Input.Dash.Pressed && Input.Aim.Value != Vector2.Zero)
+                {
+                    controller.dreamDashRedirect(self);
+                }
+            }
+
+            orig(self);
+        }
+
         public static void Load()
         {
             On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
             On.Celeste.Player.DreamDashBegin += Player_DreamDashBegin;
+            On.Celeste.Player.Update += Player_Update;
             On.Celeste.DreamBlock.Setup += DreamBlock_Setup;
         }
 
@@ -338,6 +343,7 @@ namespace Celeste.Mod.PandorasBox
         {
             On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
             On.Celeste.Player.DreamDashBegin -= Player_DreamDashBegin;
+            On.Celeste.Player.Update -= Player_Update;
             On.Celeste.DreamBlock.Setup -= DreamBlock_Setup;
         }
     }
