@@ -157,23 +157,29 @@ namespace Celeste.Mod.PandorasBox
             float speedY = Math.Abs(player.Speed.Y);
 
             bool horizontal = speedX > speedY;
+            bool vertical = speedY > speedX;
 
             if (speedX == speedY)
             {
                 // Rough check to see if this was a vertical or horizontal collision
-                Vector2 moveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0);
+                Vector2 horizontalMoveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0f);
+                Vector2 verticalMoveCheckVector = new Vector2(0f, player.Speed.Y * Engine.DeltaTime);
 
-                player.NaiveMove(moveCheckVector);
+                player.NaiveMove(horizontalMoveCheckVector);
                 horizontal = player.CollideFirst<DreamBlock>() == null;
-                player.NaiveMove(-moveCheckVector);
+                player.NaiveMove(-horizontalMoveCheckVector);
 
+                player.NaiveMove(verticalMoveCheckVector);
+                vertical = player.CollideFirst<DreamBlock>() == null;
+                player.NaiveMove(-verticalMoveCheckVector);
             }
 
             if (horizontal)
             {
                 player.Speed.X *= -1;
             }
-            else
+            
+            if (vertical)
             {
                 player.Speed.Y *= -1;
             }
