@@ -45,6 +45,7 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo dreamBlockActiveLineColor = typeof(DreamBlock).GetField("activeLineColor", BindingFlags.Static | BindingFlags.NonPublic);
         private static FieldInfo dreamBlockDisabledLineColor = typeof(DreamBlock).GetField("disabledLineColor", BindingFlags.Static | BindingFlags.NonPublic);
         private static FieldInfo dreamBlockParticles = typeof(DreamBlock).GetField("particles", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo dreamBlockPlayerHasDreamDash = typeof(DreamBlock).GetField("playerHasDreamDash", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static Type dreamBlockParticleType = typeof(DreamBlock).GetNestedType("DreamParticle", BindingFlags.NonPublic);
         private static FieldInfo dreamBlockParticleLayer = dreamBlockParticleType.GetField("Layer", BindingFlags.Instance | BindingFlags.Public);
@@ -313,16 +314,31 @@ namespace Celeste.Mod.PandorasBox
             controller?.DreamDashStart(self, preEnterSpeed);
         }
 
+        private static void DreamBlock_Setup(On.Celeste.DreamBlock.orig_Setup orig, DreamBlock self)
+        {
+            DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
+            bool playerHasDreamdash = (bool)dreamBlockPlayerHasDreamDash.GetValue(self);
+
+            orig(self);
+
+            if (playerHasDreamdash)
+            {
+                controller?.changeDreamBlockParticleColors(self);
+            }
+        }
+
         public static void Load()
         {
             On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
             On.Celeste.Player.DreamDashBegin += Player_DreamDashBegin;
+            On.Celeste.DreamBlock.Setup += DreamBlock_Setup;
         }
 
         public static void Unload()
         {
             On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
             On.Celeste.Player.DreamDashBegin -= Player_DreamDashBegin;
+            On.Celeste.DreamBlock.Setup -= DreamBlock_Setup;
         }
     }
 }
