@@ -379,7 +379,10 @@ namespace Celeste.Mod.PandorasBox
 
             setPlayerState(players, closest, Player.StDummy);
 
-            yield return orig(self, closest as Player);
+            IEnumerator enumerator = orig(self, player);
+            while (enumerator.MoveNext()) {
+                yield return enumerator.Current;
+            }
 
             setPlayerState(players, closest, Player.StNormal);
         }
