@@ -375,25 +375,24 @@ namespace Celeste.Mod.PandorasBox
         private static IEnumerator Lookout_LookRoutine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
         {
             List<Entity> players = self.SceneAs<Level>().Tracker.GetEntities<Player>();
-            Entity closest = EntityHelper.GetClosestEntity(self, players);
+            setPlayerState(players, player, Player.StDummy);
 
-            setPlayerState(players, closest, Player.StDummy);
-
-            IEnumerator enumerator = orig(self, player);
-            while (enumerator.MoveNext()) {
-                yield return enumerator.Current;
+            IEnumerator origEnumerator = orig(self, player);
+            while (origEnumerator.MoveNext())
+            {
+                yield return origEnumerator.Current;
             }
 
-            setPlayerState(players, closest, Player.StNormal);
+            setPlayerState(players, player, Player.StNormal);
         }
 
         private static void Lookout_StopInteracting(On.Celeste.Lookout.orig_StopInteracting orig, Lookout self)
         {
             orig(self);
 
-            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
+            foreach (Player player in self.SceneAs<Level>().Tracker.GetEntities<Player>())
             {
-                player2.StateMachine.State = Player.StNormal;
+                player.StateMachine.State = Player.StNormal;
             }
         }
 
@@ -401,10 +400,8 @@ namespace Celeste.Mod.PandorasBox
         {
             orig(self, player);
 
-            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
-            {
-                player2.StateMachine.State = Player.StDummy;
-            }
+            List<Entity> players = self.Scene.Tracker.GetEntities<Player>();
+            setPlayerState(players, player, Player.StDummy);
         }
 
         private static void TalkComponent_Update(ILContext il)
