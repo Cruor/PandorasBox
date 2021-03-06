@@ -48,6 +48,9 @@ namespace Celeste.Mod.PandorasBox
         public int MaxCharges;
         public int Charges;
 
+        private bool rechargeOnGround;
+        private string glideMode;
+
         public bool HasBoosted;
 
         public PropellerBox(EntityData data, Vector2 offset) : base(data.Position + offset)
@@ -61,6 +64,8 @@ namespace Celeste.Mod.PandorasBox
             texture = data.Attr("texture", "default");
             flashUseColor = ColorHelper.GetColor(data.Attr("flashUseColor", "#3F437C"));
             flashRechargedColor = ColorHelper.GetColor(data.Attr("flashChargeColor", "#5A1C1C"));
+            glideMode = data.Attr("glideMode", "AfterUse");
+            rechargeOnGround = data.Bool("rechargeOnGround", true);
 
             chargeSprites = new List<Sprite>();
 
@@ -81,6 +86,7 @@ namespace Celeste.Mod.PandorasBox
             Hold.DangerousCheck = DangerousCheck;
             Hold.OnHitSpring = HitSpring;
             Hold.SpeedGetter = (() => Speed);
+            Hold.SlowFall = glideMode == "Always";
 
             onCollideH = OnCollideH;
             onCollideV = OnCollideV;
@@ -286,7 +292,7 @@ namespace Celeste.Mod.PandorasBox
 
             if (Hold.IsHeld && Hold.Holder.OnGround() || !Hold.IsHeld && OnGround())
             {
-                refillCharges();
+                landed();
             }
 
             if (Hold.IsHeld)
@@ -483,9 +489,12 @@ namespace Celeste.Mod.PandorasBox
             if (player.Speed.Y > BoostLaunchThreshold)
             {
                 player.Speed.Y = BoostLaunchSpeed;
-                hold.SlowFall = true;
                 HasBoosted = true;
                 boostDuration = 1.2f;
+                
+                if (glideMode == "AfterUse") {
+                    hold.SlowFall = true;
+                }
 
                 Audio.Play("event:/game/01_forsaken_city/birdbros_thrust", Position);
 
@@ -500,13 +509,17 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private void refillCharges()
+        private void landed()
         {
-            if (MaxCharges > Charges)
+            if (glideMode == "AfterUse")
+            {
+                Hold.SlowFall = false;
+            }
+
+            if (rechargeOnGround && MaxCharges > Charges)
             {
                 Charges = MaxCharges;
 
-                Hold.SlowFall = false;
                 HasBoosted = false;
 
                 flashOverlaySprite.Color = flashRechargedColor;

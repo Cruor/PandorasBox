@@ -169,6 +169,8 @@ placements.entities.pandorasBox/propellerBox.tooltips.maxCharges=The amount of c
 placements.entities.pandorasBox/propellerBox.tooltips.texture=The texture to use for the propeller box. Path is "objects/pandorasBox/propellerBox/$texture/", where $texture is your input. Look at the assets to see structure.
 placements.entities.pandorasBox/propellerBox.tooltips.flashUseColor=The flash color when using a charge.
 placements.entities.pandorasBox/propellerBox.tooltips.flashChargeColor=The flash color when recharging.
+placements.entities.pandorasBox/propellerBox.tooltips.glideMode=When the jellyfish "slow fall" effect should be active.\nAlways - Always active\nAfter Using Charge - After using a charge until landing.\nNever - Never.
+placements.entities.pandorasBox/propellerBox.tooltips.rechargeOnGround=Whether the propeller box should get more charges when landing.
 
 # Clear Pipes
 placements.entities.pandorasBox/clearPipe.tooltips.texture=The texture to use for the clear pipe. Path is "objects/pandorasBox/clearPipe/$texturePath/", where $texture is your input. Look at the assets to see structure.
