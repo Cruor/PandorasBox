@@ -65,12 +65,12 @@ const iconSurface = Ahorn.matrixToSurface(
 
 sprite = "objects/pandorasBox/DreamDashController/DreamDashController0"
 
-function Ahorn.selection(DreamDashController::DreamDashController)
-    x, y = Ahorn.position(DreamDashController)
+function Ahorn.selection(entity::DreamDashController)
+    x, y = Ahorn.position(entity)
 
     return Ahorn.Rectangle(x - 12, y - 12, 24, 24)
 end
 
-Ahorn.render(ctx::Ahorn.Cairo.CairoContext, DreamDashController::DreamDashController, room::Maple.Room) = Ahorn.drawImage(ctx, iconSurface, -12, -12)
+Ahorn.render(ctx::Ahorn.Cairo.CairoContext, entity::DreamDashController, room::Maple.Room) = Ahorn.drawImage(ctx, iconSurface, -12, -12)
 
 end
