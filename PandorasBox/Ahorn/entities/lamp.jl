@@ -2,7 +2,7 @@ module PandorasBoxLamp
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/lamp" Lamp(x::Integer, y::Integer, flag::String="", baseColor::String="White", lightColor::String="White")
+@mapdef Entity "pandorasBox/lamp" Lamp(x::Integer, y::Integer, inverted::Bool=false, flag::String="", baseColor::String="White", lightColor::String="White", lightMode::String="Smooth", lightStartRadius::Int=48, lightEndRadius::Int=64)
 
 const colors = sort(collect(keys(Ahorn.XNAColors.colors)))
 
@@ -13,9 +13,15 @@ const placements = Ahorn.PlacementDict(
     )
 )
 
+const lightModes = String[
+    "Smooth",
+    "Instant"
+]
+
 Ahorn.editingOptions(entity::Lamp) = Dict{String, Any}(
     "baseColor" => colors,
-    "lightColor" => colors
+    "lightColor" => colors,
+    "lightMode" => lightModes
 )
 
 function getColor(color)

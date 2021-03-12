@@ -118,8 +118,12 @@ placements.entities.pandorasBox/laserValve.tooltips.direction=Where the opening 
 
 # Lamp
 placements.entities.pandorasBox/lamp.tooltips.flag=Flag to activate the lamp.
+placements.entities.pandorasBox/lamp.tooltips.inverted=Inverts the flag value for activation.
 placements.entities.pandorasBox/lamp.tooltips.baseColor=The color of the lamp base. Can be used to indicate what light is needed to open it.
 placements.entities.pandorasBox/lamp.tooltips.lightColor=The color of the actual light coming of the lamp.
+placements.entities.pandorasBox/lamp.tooltips.lightMode=How the lamp lights should function.
+placements.entities.pandorasBox/lamp.tooltips.lightStartRadius=Start radius of light. This is a VertexLight property, not used for the "Smooth" light mode!
+placements.entities.pandorasBox/lamp.tooltips.lightEndRadius=End radius of light. This is a VertexLight property, not used for the "Smooth" light mode!
 
 # Gate
 placements.entities.pandorasBox/gate.tooltips.flag=Flag to activate the gate.

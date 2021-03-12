@@ -22,23 +22,42 @@ namespace Celeste.Mod.PandorasBox
         private BloomPoint bloom;
         private VertexLight light;
 
-        private string flag;
         private int id;
+        private string flag;
         private Color baseColor;
         private Color lightColor;
+        private string lightMode;
+        private int lightStartRadius;
+        private int lightEndRadius;
+        private bool inverted;
+
+        private float startupLerpAcc = 0f;
+        private float startupLerpTotal = 0f;
+
+        private static float bloomStartRadius = 3f;
+        private static float bloomEndRadius = 8f;
+
+        private static float lightStartAlpha = 0.15f;
+        private static float lightEndAlpha = 1f;
+
+        private static float startupAnimationDelay = 0.1f;
 
         public Lamp(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
-            flag = data.Attr("flag", "");
             id = data.ID;
+            flag = data.Attr("flag", "");
             baseColor = ColorHelper.GetColor(data.Attr("baseColor", "White"));
             lightColor = ColorHelper.GetColor(data.Attr("lightColor", "White"));
+            lightStartRadius = data.Int("lightStartRadius", 48);
+            lightEndRadius = data.Int("lightEndRadius", 64);
+            inverted = data.Bool("inverted", false);
 
             Add((Component)(startupSprite = new Sprite(GFX.Game, "objects/pandorasBox/lamp/start")));
-            startupSprite.AddLoop("start", "", 0.1f);
+            startupSprite.AddLoop("start", "", startupAnimationDelay);
             startupSprite.JustifyOrigin(0.5f, 0.5f);
             startupSprite.Play("start");
             startupSprite.OnLastFrame = onLastFrame;
+            startupLerpTotal = startupAnimationDelay * startupSprite.CurrentAnimationTotalFrames;
             startupSprite.Stop();
 
             Add((Component)(idleSprite = new Sprite(GFX.Game, "objects/pandorasBox/lamp/idle")));
@@ -56,11 +75,23 @@ namespace Celeste.Mod.PandorasBox
             inStartupAnimation = false;
 
             Add((Component)(bloom = new BloomPoint(0.5f, 8f)));
-            Add((Component)(light = new VertexLight(lightColor, 1f, 48, 64)));
-
-            bloom.Visible = light.Visible = false;
+            Add((Component)(light = new VertexLight(lightColor, 1f, lightStartRadius, lightEndRadius)));
 
             Depth = 5;
+        }
+
+        public override void Awake(Scene scene)
+        {
+            if (isActive())
+            {
+                bloom.Radius = bloomEndRadius;
+                light.Alpha = lightEndAlpha;
+            }
+            else
+            {
+                bloom.Radius = bloomStartRadius;
+                light.Alpha = lightStartAlpha;
+            }
         }
 
         private void onLastFrame(string s)
@@ -72,11 +103,7 @@ namespace Celeste.Mod.PandorasBox
                 idleSprite.Visible = true;
                 startupSprite.Visible = false;
 
-                bloom.Visible = light.Visible = true;
-
                 inIdleAnimation = true;
-
-                bloom.Visible = light.Visible = true;
             }
             else
             {
@@ -91,7 +118,14 @@ namespace Celeste.Mod.PandorasBox
         {
             Level level = Scene as Level;
 
-            return level.Session.GetFlag(flag);
+            if (inverted)
+            {
+                return !level.Session.GetFlag(flag);
+            }
+            else
+            {
+                return level.Session.GetFlag(flag);
+            }
         }
 
         public override void Update()
@@ -108,8 +142,7 @@ namespace Celeste.Mod.PandorasBox
 
                     inStartupAnimation = true;
                     inIdleAnimation = false;
-
-                    bloom.Visible = light.Visible = false;
+                    startupLerpAcc = 0f;
                 }
             }
             else
@@ -124,10 +157,20 @@ namespace Celeste.Mod.PandorasBox
 
                     inStartupAnimation = true;
                     inIdleAnimation = false;
-
-                    bloom.Visible = light.Visible = false;
+                    startupLerpAcc = startupLerpTotal;
                 }
             }
+
+            float lerpPercent = isActive() ? 1.0f : 0.0f;
+
+            if (inStartupAnimation && lightMode == "Smooth")
+            {
+                startupLerpAcc = MathHelper.Clamp(startupLerpAcc + Engine.DeltaTime * startupSprite.Rate, 0f, startupLerpTotal);
+                lerpPercent = startupLerpAcc / startupLerpTotal;
+            }
+
+            bloom.Radius = MathHelper.Lerp(bloomStartRadius, bloomEndRadius, lerpPercent);
+            light.Alpha = MathHelper.Lerp(lightStartAlpha, lightEndAlpha, lerpPercent);
 
             base.Update();
         }
