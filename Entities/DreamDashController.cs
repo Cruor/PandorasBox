@@ -20,6 +20,7 @@ namespace Celeste.Mod.PandorasBox
         public bool OverrideColors;
         public bool NeverSlowDown;
         public bool BounceOnCollision;
+        public bool CollideStickToWalls;
 
         private float sameDirectionSpeedMultiplier;
         private float dreamDashSpeed;
@@ -53,6 +54,10 @@ namespace Celeste.Mod.PandorasBox
 
         private static MethodInfo playerDreamDashedIntoSolid = typeof(Player).GetMethod("DreamDashedIntoSolid", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private static ConditionalWeakTable<Player, ValueHolder<float>> wallPlayerRotations = new ConditionalWeakTable<Player, ValueHolder<float>>();
+        private static ConditionalWeakTable<Player, ValueHolder<Vector2>> wallPlayerRenderOffset = new ConditionalWeakTable<Player, ValueHolder<Vector2>>();
+        private static ConditionalWeakTable<Player, ValueHolder<Vector2>> wallPlayerSpeed = new ConditionalWeakTable<Player, ValueHolder<Vector2>>();
+
         public DreamDashController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             AllowSameDirectionDash = data.Bool("allowSameDirectionDash", false);
@@ -61,6 +66,7 @@ namespace Celeste.Mod.PandorasBox
             OverrideColors = data.Bool("overrideColors", false);
             NeverSlowDown = data.Bool("neverSlowDown", false);
             BounceOnCollision = data.Bool("bounceOnCollision", false);
+            CollideStickToWalls = data.Bool("stickOnCollision", false);
 
             sameDirectionSpeedMultiplier = data.Float("sameDirectionSpeedMultiplier", 1.0f);
             dreamDashSpeed = data.Float("dreamDashSpeed", 240f);
@@ -123,7 +129,7 @@ namespace Celeste.Mod.PandorasBox
         // Do a bounce check and bounce if possible
         public bool AttemptBounce(Player player)
         {
-            if (BounceOnCollision)
+            if (BounceOnCollision || CollideStickToWalls)
             {
                 Vector2 moveCheckVector = player.Speed * Engine.DeltaTime;
 
@@ -138,11 +144,18 @@ namespace Celeste.Mod.PandorasBox
                     {
                         // Move the player out of the wall properly, then bounce
                         player.NaiveMove(-moveCheckVector);
-                        BouncePlayer(player);
+
+                        if (BounceOnCollision)
+                        {
+                            BouncePlayer(player);
+                        }
+                        else
+                        {
+                            StickPlayer(player);
+                        }
 
                         return true;
                     }
-
                 }
 
                 // Make sure we undo the check movement
@@ -152,28 +165,22 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
+        private bool outsideAfterMove(Player player, Vector2 offset)
+        {
+            player.NaiveMove(offset);
+            bool outside = player.CollideFirst<DreamBlock>() == null;
+            player.NaiveMove(-offset);
+
+            return outside;
+        }
+
         public void BouncePlayer(Player player)
         {
-            float speedX = Math.Abs(player.Speed.X);
-            float speedY = Math.Abs(player.Speed.Y);
+            Vector2 horizontalMoveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0f);
+            Vector2 verticalMoveCheckVector = new Vector2(0f, player.Speed.Y * Engine.DeltaTime);
 
-            bool horizontal = speedX > speedY;
-            bool vertical = speedY > speedX;
-
-            if (speedX == speedY)
-            {
-                // Rough check to see if this was a vertical or horizontal collision
-                Vector2 horizontalMoveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0f);
-                Vector2 verticalMoveCheckVector = new Vector2(0f, player.Speed.Y * Engine.DeltaTime);
-
-                player.NaiveMove(horizontalMoveCheckVector);
-                horizontal = player.CollideFirst<DreamBlock>() == null;
-                player.NaiveMove(-horizontalMoveCheckVector);
-
-                player.NaiveMove(verticalMoveCheckVector);
-                vertical = player.CollideFirst<DreamBlock>() == null;
-                player.NaiveMove(-verticalMoveCheckVector);
-            }
+            bool horizontal = outsideAfterMove(player, horizontalMoveCheckVector);
+            bool vertical = outsideAfterMove(player, verticalMoveCheckVector);
 
             if (horizontal)
             {
@@ -184,6 +191,74 @@ namespace Celeste.Mod.PandorasBox
             {
                 player.Speed.Y *= -1;
             }
+        }
+
+        public void StickPlayer(Player player)
+        {
+            DreamBlock dreamBlock = player.CollideFirst<DreamBlock>();
+
+            if (dreamBlock == null)
+            {
+                return;
+            }
+
+            wallPlayerSpeed.AddOrUpdate(player, new ValueHolder<Vector2>(player.Speed));
+
+            Collider playerCollider = player.Collider;
+            Collider dreamBlockCollider = dreamBlock.Collider;
+
+            Vector2 horizontalMoveCheckVector = new Vector2(player.Speed.X * Engine.DeltaTime, 0f);
+            Vector2 verticalMoveCheckVector = new Vector2(0f, player.Speed.Y * Engine.DeltaTime);
+
+            bool horizontal = outsideAfterMove(player, horizontalMoveCheckVector);
+            bool vertical = outsideAfterMove(player, verticalMoveCheckVector);
+
+            player.StateMachine.State = Player.StNormal;
+            player.Ducking = true;
+       
+            float moveOffsetX = 0f;
+            float moveOffsetY = 0f;
+            float renderOffsetX = 0f;
+            float renderOffsetY = 0f;
+            double rotation = 0.0;
+
+            if (horizontal)
+            {
+                if (player.Speed.X < 0)
+                {
+                    rotation = Math.PI / 2;
+                    moveOffsetX = dreamBlockCollider.AbsoluteLeft - player.X + playerCollider.Width / 2.0f;
+                    renderOffsetX = -playerCollider.Width / 2.0f;
+                    renderOffsetY = -playerCollider.Height / 2.0f;
+                }
+                else
+                {
+                    rotation = Math.PI * 3 / 2;
+                    moveOffsetX = dreamBlockCollider.AbsoluteRight - player.X - playerCollider.Width / 2.0f;
+                    renderOffsetX = playerCollider.Width / 2.0f;
+                    renderOffsetY = -playerCollider.Height / 2.0f;
+                }
+            }
+
+            if (vertical)
+            {
+                if (player.Speed.Y < 0)
+                {
+                    rotation = Math.PI;
+                    moveOffsetY = dreamBlockCollider.AbsoluteTop - player.Y + playerCollider.Height - 1;
+                    renderOffsetY = -playerCollider.Height;
+                }
+                else
+                {
+                    rotation = 0.0;
+                    moveOffsetY = dreamBlockCollider.AbsoluteBottom - player.Y + 1;
+                }
+            }
+
+            wallPlayerRotations.AddOrUpdate(player, new ValueHolder<float>((float)rotation));
+            wallPlayerRenderOffset.AddOrUpdate(player, new ValueHolder<Vector2>(new Vector2(renderOffsetX, renderOffsetY)));
+
+            player.NaiveMove(new Vector2(moveOffsetX, moveOffsetY));
         }
 
         public void DreamDashStart(Player player, Vector2 preEnterSpeed)
@@ -244,9 +319,12 @@ namespace Celeste.Mod.PandorasBox
                     int layer = (int)dreamBlockParticleLayer.GetValue(particle);
                     Color color = Calc.Random.Choose(particleLayerColors[layer]);
 
-                    dreamBlockParticleColor.SetValue(particle, color);
+                    if (color != null)
+                    {
+                        dreamBlockParticleColor.SetValue(particle, color);
 
-                    particles.SetValue(particle, i);
+                        particles.SetValue(particle, i);
+                    }
                 }
             }
         }
@@ -288,19 +366,31 @@ namespace Celeste.Mod.PandorasBox
         {
             DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
 
-            controller?.AttemptBounce(self);
+            bool bounced = controller?.AttemptBounce(self) ?? false;
 
-            return orig(self);
+            if (bounced)
+            {
+                return self.StateMachine.State;
+            }
+            else
+            {
+                return orig(self);
+            }
         }
 
         private static void Player_DreamDashBegin(On.Celeste.Player.orig_DreamDashBegin orig, Player self)
         {
             DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
             Vector2 preEnterSpeed = self.Speed;
+            Vector2 stickSpeed = wallPlayerSpeed.GetOrDefault(self, new ValueHolder<Vector2>(preEnterSpeed)).value;
+
+            wallPlayerRenderOffset.Remove(self);
+            wallPlayerRotations.Remove(self);
+            wallPlayerSpeed.Remove(self);
 
             orig(self);
 
-            controller?.DreamDashStart(self, preEnterSpeed);
+            controller?.DreamDashStart(self, stickSpeed);
         }
 
         private static void DreamBlock_Setup(On.Celeste.DreamBlock.orig_Setup orig, DreamBlock self)
@@ -328,21 +418,94 @@ namespace Celeste.Mod.PandorasBox
                 }
             }
 
+            Facings preOrigFacing = self.Facing;
+            Vector2 preOrigScale = self.Sprite.Scale;
+
             orig(self);
+
+            if (wallPlayerRotations.TryGetValue(self, out var rotationHolder))
+            {
+                self.Facing = preOrigFacing;
+                self.Sprite.Scale = preOrigScale;
+
+                Vector2 inputAim = Input.Aim.Value;
+
+                if (inputAim != Vector2.Zero)
+                {
+                    float inputAngleOffset = (inputAim.Angle() - rotationHolder.value + MathHelper.TwoPi) % MathHelper.TwoPi;
+                    Facings newFacing = self.Facing;
+
+                    if (inputAngleOffset >= Math.PI * 0.75 && inputAngleOffset <= Math.PI * 1.25)
+                    {
+                        newFacing = Facings.Left;
+                    }
+                    else if (inputAngleOffset >= Math.PI * -0.25 && inputAngleOffset <= Math.PI * 0.25 || inputAngleOffset - MathHelper.TwoPi >= Math.PI * -0.25 && inputAngleOffset - MathHelper.TwoPi <= Math.PI * 0.25)
+                    {
+                        newFacing = Facings.Right;
+                    }
+
+                    if (self.Facing != newFacing)
+                    {
+                        self.Facing = newFacing;
+                    }
+                }
+            }
+        }
+
+        private static void Player_Render(On.Celeste.Player.orig_Render orig, Player self)
+        {
+            Level level = self.Scene as Level;
+
+            float playerRotation = wallPlayerRotations.GetOrDefault(self, new ValueHolder<float>(0f)).value;
+            Vector2 renderOffset = wallPlayerRenderOffset.GetOrDefault(self, new ValueHolder<Vector2>(new Vector2(0f, 0f))).value;
+
+            if (level != null && playerRotation != 0f) {
+                Camera camera = level.Camera;
+
+                float originalAngle = camera.Angle;
+                Vector2 originalCameraPosition = camera.Position;
+                Vector2 originalCameraOrigin = camera.Origin;
+                Vector2 originalPlayerPosition = self.Sprite.Position;
+                Vector2 originalPlayerHairPosition = self.Hair.Sprite.Position;
+
+                GameplayRenderer.End();
+                camera.Angle = playerRotation;
+                camera.Origin = self.Position + renderOffset - camera.Position;
+                camera.Position += camera.Origin;
+                self.Sprite.Position += renderOffset;
+                self.Hair.MoveHairBy(renderOffset);
+                GameplayRenderer.Begin();
+
+                orig(self);
+
+                GameplayRenderer.End();
+                camera.Angle = originalAngle;
+                camera.Origin = originalCameraOrigin;
+                camera.Position = originalCameraPosition;
+                self.Sprite.Position = originalPlayerPosition;
+                self.Hair.MoveHairBy(-renderOffset);
+                GameplayRenderer.Begin();
+            }
+            else
+            {
+                orig(self);
+            }
         }
 
         public static void Load()
         {
-            On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
+            On.Celeste.Player.Render += Player_Render;
             On.Celeste.Player.DreamDashBegin += Player_DreamDashBegin;
+            On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
             On.Celeste.Player.Update += Player_Update;
             On.Celeste.DreamBlock.Setup += DreamBlock_Setup;
         }
 
         public static void Unload()
         {
-            On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
+            On.Celeste.Player.Render -= Player_Render;
             On.Celeste.Player.DreamDashBegin -= Player_DreamDashBegin;
+            On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
             On.Celeste.Player.Update -= Player_Update;
             On.Celeste.DreamBlock.Setup -= DreamBlock_Setup;
         }
