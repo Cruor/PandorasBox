@@ -40,6 +40,8 @@ namespace Celeste.Mod.PandorasBox
         public static Dictionary<VirtualButton, bool> ConsumedPresses = new Dictionary<VirtualButton, bool>();
         public static Dictionary<VirtualButton, float> BufferCounters = new Dictionary<VirtualButton, float>();
 
+        public static Player closestLookoutPlayer;
+
         private bool getFlag()
         {
             Level level = Scene as Level;
@@ -79,7 +81,8 @@ namespace Celeste.Mod.PandorasBox
 
         private static float getSpinnerOffset(CrystalStaticSpinner spinner)
         {
-            if (spinnerOffsets.TryGetValue(spinner, out var holder)) {
+            if (spinnerOffsets.TryGetValue(spinner, out var holder))
+            {
                 return holder.value;
             }
             else
@@ -272,7 +275,7 @@ namespace Celeste.Mod.PandorasBox
             orig(self, level);
         }
 
-        private static PlayerDeadBody Player_OnDie(On.Celeste.Player.orig_Die orig, Player self, Vector2 direction, bool evenIfInvincible=false, bool registerDeathsInStats=true)
+        private static PlayerDeadBody Player_OnDie(On.Celeste.Player.orig_Die orig, Player self, Vector2 direction, bool evenIfInvincible = false, bool registerDeathsInStats = true)
         {
             IEnumerable<Player> players = self.Scene.Tracker.GetEntities<Player>().Cast<Player>();
             int playerCount = players.Count();
@@ -363,11 +366,11 @@ namespace Celeste.Mod.PandorasBox
 
         private static void setPlayerState(List<Entity> players, Entity ignore, int state)
         {
-            foreach (Player player2 in players)
+            foreach (Player player in players)
             {
-                if (player2 != ignore)
+                if (player != ignore)
                 {
-                    player2.StateMachine.State = state;
+                    player.StateMachine.State = state;
                 }
             }
         }
@@ -375,25 +378,24 @@ namespace Celeste.Mod.PandorasBox
         private static IEnumerator Lookout_LookRoutine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
         {
             List<Entity> players = self.SceneAs<Level>().Tracker.GetEntities<Player>();
-            Entity closest = EntityHelper.GetClosestEntity(self, players);
+            setPlayerState(players, closestLookoutPlayer, Player.StDummy);
 
-            setPlayerState(players, closest, Player.StDummy);
-
-            IEnumerator enumerator = orig(self, player);
-            while (enumerator.MoveNext()) {
-                yield return enumerator.Current;
+            IEnumerator origEnumerator = orig(self, closestLookoutPlayer);
+            while (origEnumerator.MoveNext())
+            {
+                yield return origEnumerator.Current;
             }
 
-            setPlayerState(players, closest, Player.StNormal);
+            setPlayerState(players, closestLookoutPlayer, Player.StNormal);
         }
 
         private static void Lookout_StopInteracting(On.Celeste.Lookout.orig_StopInteracting orig, Lookout self)
         {
             orig(self);
 
-            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
+            foreach (Player player in self.SceneAs<Level>().Tracker.GetEntities<Player>())
             {
-                player2.StateMachine.State = Player.StNormal;
+                player.StateMachine.State = Player.StNormal;
             }
         }
 
@@ -401,10 +403,10 @@ namespace Celeste.Mod.PandorasBox
         {
             orig(self, player);
 
-            foreach (Player player2 in self.SceneAs<Level>().Tracker.GetEntities<Player>())
-            {
-                player2.StateMachine.State = Player.StDummy;
-            }
+            List<Entity> players = self.Scene.Tracker.GetEntities<Player>();
+            closestLookoutPlayer = EntityHelper.GetClosestEntity(self, players) as Player;
+
+            setPlayerState(players, closestLookoutPlayer, Player.StDummy);
         }
 
         private static void TalkComponent_Update(ILContext il)
@@ -416,7 +418,7 @@ namespace Celeste.Mod.PandorasBox
                 Logger.Log($"{PandorasBoxMod.LoggerTag}/TalkComponent", $"Patching talk component at {cursor.Index} in CIL code for {cursor.Method.FullName}");
 
                 // this
-                cursor.Emit(OpCodes.Ldarg, 0); 
+                cursor.Emit(OpCodes.Ldarg, 0);
 
                 // flag, the current value we are overriding
                 cursor.Emit(OpCodes.Ldloc, 1);
