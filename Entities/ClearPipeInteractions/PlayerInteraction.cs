@@ -70,7 +70,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
         {
             Player player = entity as Player;
 
-            if (player != null)
+            if (player != null && !player.Dead)
             {
                 if (player.StateMachine.State != Player.StRedDash)
                 {
@@ -91,7 +91,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
         {
             Player player = entity as Player;
 
-            if (player != null && interaction != null)
+            if (player != null && !player.Dead && interaction != null)
             {
                 player.StateMachine.Locked = false;
                 player.DummyGravity = true;
