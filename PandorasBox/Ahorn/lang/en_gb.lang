@@ -148,7 +148,9 @@ placements.entities.pandorasBox/dreamDashController.tooltips.allowSameDirectionD
 placements.entities.pandorasBox/dreamDashController.tooltips.allowDreamDashRedirect=If the player should be able to dash in a new direction while in space jam.
 placements.entities.pandorasBox/dreamDashController.tooltips.overrideDreamDashSpeed=Whether the space jam should use custom speed.
 placements.entities.pandorasBox/dreamDashController.tooltips.neverSlowDown=Player will use and keep speed it has on entry if it is faster than a normal dream dash.
+placements.entities.pandorasBox/dreamDashController.tooltips.useEntrySpeedAngle=Whether the entry angle should be used rather than the dash angle when entering a block. This is intended to be used together with the never slow down option, as it allows entering the space jam at "ultra" angles.
 placements.entities.pandorasBox/dreamDashController.tooltips.bounceOnCollision=Whether the player should bounce when hitting solids rather than die. Does not bounce directly back like Assist Mode invincibility.
+placements.entities.pandorasBox/dreamDashController.tooltips.stickOnCollision=Whether the player should stick to the wall when hitting solids rather than die. Setting is ignored if Bounce on Collision is active.
 placements.entities.pandorasBox/dreamDashController.tooltips.overrideColors=Whether the space jam in the room should use the colors from this controller.
 placements.entities.pandorasBox/dreamDashController.tooltips.sameDirectionSpeedMultiplier=The speed multiplier if the player dashes in the same direction. Allow Same Direction Dash must be enabled.
 placements.entities.pandorasBox/dreamDashController.tooltips.dreamDashSpeed=The speed when entering a space jam. Override Dream Dash Speed must be enabled.

@@ -19,6 +19,7 @@ namespace Celeste.Mod.PandorasBox
         public bool OverrideDreamDashSpeed;
         public bool OverrideColors;
         public bool NeverSlowDown;
+        public bool UseEntrySpeedAngle;
         public bool BounceOnCollision;
         public bool CollideStickToWalls;
 
@@ -65,6 +66,7 @@ namespace Celeste.Mod.PandorasBox
             OverrideDreamDashSpeed = data.Bool("overrideDreamDashSpeed", false);
             OverrideColors = data.Bool("overrideColors", false);
             NeverSlowDown = data.Bool("neverSlowDown", false);
+            UseEntrySpeedAngle = data.Bool("useEntrySpeedAngle", false);
             BounceOnCollision = data.Bool("bounceOnCollision", false);
             CollideStickToWalls = data.Bool("stickOnCollision", false);
 
@@ -97,8 +99,6 @@ namespace Celeste.Mod.PandorasBox
 
                     if (AllowDreamDashRedirection && !sameDirection || AllowSameDirectionDash && sameDirection)
                     {
-                        player.DashDir = Input.GetAimVector();
-                        player.Speed = player.DashDir * player.Speed.Length();
                         player.Dashes = Math.Max(0, player.Dashes - 1);
 
                         Audio.Play("event:/char/madeline/dreamblock_enter");
@@ -114,6 +114,11 @@ namespace Celeste.Mod.PandorasBox
                         {
                             player.Speed *= sameDirectionSpeedMultiplier;
                             player.DashDir *= Math.Sign(sameDirectionSpeedMultiplier);
+                        }
+                        else
+                        {
+                            player.DashDir = Input.GetAimVector();
+                            player.Speed = player.DashDir * player.Speed.Length();
                         }
 
                         Input.Dash.ConsumeBuffer();
@@ -261,18 +266,37 @@ namespace Celeste.Mod.PandorasBox
             player.NaiveMove(new Vector2(moveOffsetX, moveOffsetY));
         }
 
-        public void DreamDashStart(Player player, Vector2 preEnterSpeed)
+        public void DreamDashStartBefore(Player player)
         {
+            Vector2 stickSpeed = wallPlayerSpeed.GetOrDefault(player, new ValueHolder<Vector2>(player.Speed)).value;
+
+            wallPlayerRenderOffset.Remove(player);
+            wallPlayerRotations.Remove(player);
+            wallPlayerSpeed.Remove(player);
+
+            if (UseEntrySpeedAngle)
+            {
+                Vector2 entryVector = stickSpeed.SafeNormalize();
+                float magnitude = stickSpeed.Length();
+
+                player.Speed = entryVector * magnitude;
+            }
+        }
+
+        public void DreamDashStartAfter(Player player, Vector2 preEnterSpeed)
+        {
+            Vector2 dashDirection = preEnterSpeed.SafeNormalize();
+
             if (OverrideDreamDashSpeed)
             {
-                player.Speed = player.DashDir * dreamDashSpeed;
+                player.Speed = dashDirection * dreamDashSpeed;
             }
 
             if (NeverSlowDown)
             {
                 if (player.Speed.LengthSquared() < preEnterSpeed.LengthSquared())
                 {
-                    player.Speed = player.DashDir * preEnterSpeed.Length();
+                    player.Speed = dashDirection * preEnterSpeed.Length();
                 }
             }
         }
@@ -378,16 +402,12 @@ namespace Celeste.Mod.PandorasBox
         private static void Player_DreamDashBegin(On.Celeste.Player.orig_DreamDashBegin orig, Player self)
         {
             DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
-            Vector2 preEnterSpeed = self.Speed;
-            Vector2 stickSpeed = wallPlayerSpeed.GetOrDefault(self, new ValueHolder<Vector2>(preEnterSpeed)).value;
-
-            wallPlayerRenderOffset.Remove(self);
-            wallPlayerRotations.Remove(self);
-            wallPlayerSpeed.Remove(self);
+            controller?.DreamDashStartBefore(self);
+            Vector2 beforeSpeed = self.Speed;
 
             orig(self);
 
-            controller?.DreamDashStart(self, stickSpeed);
+            controller?.DreamDashStartAfter(self, beforeSpeed);
         }
 
         private static void DreamBlock_Setup(On.Celeste.DreamBlock.orig_Setup orig, DreamBlock self)
