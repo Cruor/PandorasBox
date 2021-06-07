@@ -30,11 +30,6 @@ namespace Celeste.Mod.PandorasBox
         private Color activeLineColor;
         private Color disabledLineColor;
 
-        private Color activeBackColorDefault;
-        private Color disabledBackColorDefault;
-        private Color activeLineColorDefault;
-        private Color disabledLineColorDefault;
-
         private List<List<Color>> particleLayerColors;
 
         private bool addedColors;
@@ -47,6 +42,11 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo dreamBlockDisabledLineColor = typeof(DreamBlock).GetField("disabledLineColor", BindingFlags.Static | BindingFlags.NonPublic);
         private static FieldInfo dreamBlockParticles = typeof(DreamBlock).GetField("particles", BindingFlags.Instance | BindingFlags.NonPublic);
         private static FieldInfo dreamBlockPlayerHasDreamDash = typeof(DreamBlock).GetField("playerHasDreamDash", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private Color activeBackColorDefault = (Color) dreamBlockActiveBackColor.GetValue(null);
+        private Color disabledBackColorDefault = (Color) dreamBlockDisabledBackColor.GetValue(null);
+        private Color activeLineColorDefault = (Color) dreamBlockActiveLineColor.GetValue(null);
+        private Color disabledLineColorDefault = (Color) dreamBlockDisabledLineColor.GetValue(null);
 
         private static Type dreamBlockParticleType = typeof(DreamBlock).GetNestedType("DreamParticle", BindingFlags.NonPublic);
         private static FieldInfo dreamBlockParticleLayer = dreamBlockParticleType.GetField("Layer", BindingFlags.Instance | BindingFlags.Public);
@@ -281,11 +281,6 @@ namespace Celeste.Mod.PandorasBox
         {
             if (OverrideColors && !addedColors)
             {
-                activeBackColorDefault = (Color)dreamBlockActiveBackColor.GetValue(null);
-                disabledBackColorDefault = (Color)dreamBlockDisabledBackColor.GetValue(null);
-                activeLineColorDefault = (Color)dreamBlockActiveLineColor.GetValue(null);
-                disabledLineColorDefault = (Color)dreamBlockDisabledLineColor.GetValue(null);
-
                 dreamBlockActiveBackColor.SetValue(null, activeBackColor);
                 dreamBlockDisabledBackColor.SetValue(null, disabledBackColor);
                 dreamBlockActiveLineColor.SetValue(null, activeLineColor);
@@ -303,6 +298,8 @@ namespace Celeste.Mod.PandorasBox
                 dreamBlockDisabledBackColor.SetValue(null, disabledBackColorDefault);
                 dreamBlockActiveLineColor.SetValue(null, activeLineColorDefault);
                 dreamBlockDisabledLineColor.SetValue(null, disabledLineColorDefault);
+
+                addedColors = false;
             }
         }
 
