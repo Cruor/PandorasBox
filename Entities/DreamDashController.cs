@@ -285,7 +285,7 @@ namespace Celeste.Mod.PandorasBox
 
         public void DreamDashStartAfter(Player player, Vector2 preEnterSpeed)
         {
-            Vector2 dashDirection = preEnterSpeed.SafeNormalize();
+            Vector2 dashDirection = UseEntrySpeedAngle ? preEnterSpeed.SafeNormalize() : player.DashDir;
 
             if (OverrideDreamDashSpeed)
             {
