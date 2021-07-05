@@ -359,6 +359,7 @@ namespace Celeste.Mod.PandorasBox
                 if (playerRespawnTween.GetValue(synced) == null)
                 {
                     self.StateMachine.State = synced.StateMachine.State;
+                    self.Facing = synced.Facing;
                     syncedRespawn.Remove(self);
                 }
             }
