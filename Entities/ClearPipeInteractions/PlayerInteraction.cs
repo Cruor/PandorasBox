@@ -14,6 +14,8 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 {
     class PlayerInteraction : BaseInteraction
     {
+        private static FieldInfo playerDashCooldownTimerMethod = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
+
         public override void Load()
         {
             base.Load();
@@ -30,9 +32,17 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
         private static bool canPlayerDashIntoPipe(Player player, Direction pipeDirection)
         {
-            if ((Input.Dash.Pressed && player.CanDash) || player.DashAttacking)
+            bool startDash = (Input.CrouchDashPressed || Input.DashPressed) && player.CanDash;
+
+            if (startDash || player.DashAttacking)
             {
-                Vector2 dashDir = Input.Dash.Pressed ? Input.GetAimVector() : player.DashDir;
+                Vector2 dashDir = startDash ? Input.GetAimVector(player.Facing) : player.Speed.SafeNormalize();
+
+                // Player might have dashed into a wall, check with their aim instead
+                if (player.DashAttacking && dashDir == Vector2.Zero)
+                {
+                    dashDir = Input.GetAimVector(player.Facing);
+                }
 
                 switch (pipeDirection)
                 {
@@ -101,6 +111,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 if (player.StateMachine.State != Player.StRedDash)
                 {
                     player.StateMachine.State = Player.StNormal;
+                    playerDashCooldownTimerMethod.SetValue(player, 0f);
                 }
 
                 player.Speed = interaction.DirectionVector * interaction.CurrentClearPipe.TransportSpeed;

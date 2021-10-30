@@ -54,6 +54,8 @@ namespace Celeste.Mod.PandorasBox
 
         public MarioClearPipe(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
+            Depth = -5;
+
             nodes = data.NodesWithPosition(offset);
 
             removeRedundantNodes();
