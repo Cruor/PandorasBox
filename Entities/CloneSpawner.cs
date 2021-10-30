@@ -253,11 +253,17 @@ namespace Celeste.Mod.PandorasBox
 
         private static void DialogCutscene_OnBegin(On.Celeste.Mod.Entities.DialogCutscene.orig_OnBegin orig, DialogCutscene self, Level level)
         {
-            foreach (Player player in self.Scene.Tracker.GetEntities<Player>())
+            List<Entity> players = self.Scene.Tracker.GetEntities<Player>();
+
+            // Only if we have clones in the room
+            if (players.Count > 1)
             {
-                player.StateMachine.State = 11;
-                player.StateMachine.Locked = true;
-                player.ForceCameraUpdate = true;
+                foreach (Player player in self.Scene.Tracker.GetEntities<Player>())
+                {
+                    player.StateMachine.State = 11;
+                    player.StateMachine.Locked = true;
+                    player.ForceCameraUpdate = true;
+                }
             }
 
             orig(self, level);
@@ -265,11 +271,17 @@ namespace Celeste.Mod.PandorasBox
 
         private static void DialogCutscene_OnEnd(On.Celeste.Mod.Entities.DialogCutscene.orig_OnEnd orig, DialogCutscene self, Level level)
         {
-            foreach (Player player in self.Scene.Tracker.GetEntities<Player>())
+            List<Entity> players = self.Scene.Tracker.GetEntities<Player>();
+
+            // Only if we have clones in the room
+            if (players.Count > 1)
             {
-                player.StateMachine.Locked = false;
-                player.StateMachine.State = 0;
-                player.ForceCameraUpdate = false;
+                foreach (Player player in self.Scene.Tracker.GetEntities<Player>())
+                {
+                    player.StateMachine.Locked = false;
+                    player.StateMachine.State = 0;
+                    player.ForceCameraUpdate = false;
+                }
             }
 
             orig(self, level);
