@@ -58,6 +58,8 @@ namespace Celeste.Mod.PandorasBox
 
         public EntityActivator(EntityData data, Vector2 offset) : base(data, offset)
         {
+            Tag = Tags.TransitionUpdate;
+
             Mode = data.Enum<EffectModes>("mode", EffectModes.ActivateInsideDeactivateOutside);
             ActivationMode = data.Enum<ActivationModes>("activationMode", ActivationModes.OnEnter);
 
@@ -88,7 +90,9 @@ namespace Celeste.Mod.PandorasBox
 
         public override void OnLeave(Player player)
         {
-            base.OnLeave(player); if (ActivationMode == ActivationModes.OnLeave)
+            base.OnLeave(player);
+
+            if (ActivationMode == ActivationModes.OnLeave)
             {
                 UpdateEntities();
             }
