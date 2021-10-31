@@ -30,7 +30,10 @@ placements.entities.pandorasBox/dashToggleBlock.tooltips.index=The index where t
 
 # Colored Water
 placements.entities.pandorasBox/coloredWater.tooltips.color=The color of the water.\nHex values can be used.
-placements.entities.pandorasBox/coloredWater.tooltips.hasBottom=Determines whether or not the water has a bottom.
+placements.entities.pandorasBox/coloredWater.tooltips.hasTop=Determines whether or not the water has a top surface.
+placements.entities.pandorasBox/coloredWater.tooltips.hasBottom=Determines whether or not the water has a bottom surface.
+placements.entities.pandorasBox/coloredWater.tooltips.hasLeft=Determines whether or not the water has a left surface.
+placements.entities.pandorasBox/coloredWater.tooltips.hasRight=Determines whether or not the water has a right surface.
 
 # Colored Waterfall
 placements.entities.pandorasBox/coloredWaterfall.tooltips.color=The color of the waterfall.\nHex values can be used.

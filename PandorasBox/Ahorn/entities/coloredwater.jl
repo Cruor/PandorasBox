@@ -2,7 +2,7 @@ module PandorasBoxColoredWater
 
 using ..Ahorn, Maple
 
-@mapdef Entity "pandorasBox/coloredWater" ColoredWater(x::Integer, y::Integer, width::Integer=Maple.defaultBlockWidth, height::Integer=Maple.defaultBlockHeight, hasBottom::Bool=false, color::String="LightSkyBlue")
+@mapdef Entity "pandorasBox/coloredWater" ColoredWater(x::Integer, y::Integer, width::Integer=Maple.defaultBlockWidth, height::Integer=Maple.defaultBlockHeight, hasTop::Bool=true, hasBottom::Bool=false, hasLeft::Bool=false, hasRight::Bool=false, color::String="LightSkyBlue")
 
 function getColor(color)
     if haskey(Ahorn.XNAColors.colors, color)
