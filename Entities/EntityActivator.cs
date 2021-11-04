@@ -42,7 +42,7 @@ namespace Celeste.Mod.PandorasBox
         public EffectModes Mode;
         public ActivationModes ActivationMode;
 
-        public HashSet<Type> Targets;
+        public List<Type> Targets;
 
         public bool UseTracked;
 
@@ -63,7 +63,7 @@ namespace Celeste.Mod.PandorasBox
             Mode = data.Enum<EffectModes>("mode", EffectModes.ActivateInsideDeactivateOutside);
             ActivationMode = data.Enum<ActivationModes>("activationMode", ActivationModes.OnEnter);
 
-            Targets = new HashSet<Type>(TypeHelper.GetTypesFromString(data.Attr("targets", "")).Distinct());
+            Targets = TypeHelper.GetTypesFromString(data.Attr("targets", ""));
 
             UseTracked = data.Bool("useTracked", true);
 
@@ -198,29 +198,7 @@ namespace Celeste.Mod.PandorasBox
 
         public List<Entity> FindTargetEntities()
         {
-            return UseTracked ? FindTargetEntitiesTracked() : FindTargetEntitiesUntracked();
-        }
-
-        public List<Entity> FindTargetEntitiesUntracked()
-        {
-            List<Entity> entities = Scene.Entities.Where(entity => Targets.Contains(entity.GetType())).ToList();
-
-            return entities;
-        }
-
-        public List<Entity> FindTargetEntitiesTracked()
-        {
-            List<Entity> entities = new List<Entity>();
-
-            foreach (Type type in Targets)
-            {
-                if (type != null && Scene.Tracker.Entities.ContainsKey(type))
-                {
-                    entities.AddRange(Scene.Tracker.Entities[type]);
-                }
-            }
-
-            return entities;
+            return TypeHelper.FindTargetEntities(Scene, Targets, UseTracked);
         }
 
         public bool OnInterval()

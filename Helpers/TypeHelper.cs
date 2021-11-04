@@ -29,12 +29,39 @@ namespace Celeste.Mod.PandorasBox
                 return types;
             }
 
-            foreach (String s in name.Split(sep))
+            foreach (String s in name.Split(sep).Distinct<string>())
             {
                 types.Add(TypeHelper.GetTypeFromString(s));
             }
 
             return types;
+        }
+
+        public static List<Entity> FindTargetEntities(Scene scene, List<Type> targets, bool useTracked)
+        {
+            return useTracked ? FindTargetEntitiesTracked(scene, targets) : FindTargetEntitiesUntracked(scene, targets);
+        }
+
+        public static List<Entity> FindTargetEntitiesTracked(Scene scene, List<Type> targets)
+        {
+            List<Entity> entities = new List<Entity>();
+
+            foreach (Type type in targets)
+            {
+                if (type != null && scene.Tracker.Entities.ContainsKey(type))
+                {
+                    entities.AddRange(scene.Tracker.Entities[type]);
+                }
+            }
+
+            return entities;
+        }
+
+        public static List<Entity> FindTargetEntitiesUntracked(Scene scene, List<Type> targets)
+        {
+            List<Entity> entities = scene.Entities.Where(entity => targets.Contains(entity.GetType())).ToList();
+
+            return entities;
         }
     }
 }
