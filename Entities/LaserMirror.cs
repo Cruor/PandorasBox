@@ -14,6 +14,7 @@ namespace Celeste.Mod.PandorasBox
     {
         private Sprite sprite;
         private Dictionary<Laserbeam, Laserbeam> reflections;
+        private HashSet<Laserbeam> createdLasers;
         private string opening;
 
         private static Dictionary<string, Tuple<int, int>> openingScales = new Dictionary<string, Tuple<int, int>>()
@@ -79,30 +80,30 @@ namespace Celeste.Mod.PandorasBox
             sprite.Play("mirror_static");
 
             reflections = new Dictionary<Laserbeam, Laserbeam>();
+            createdLasers = new HashSet<Laserbeam>();
 
             Collider = openingBlockingColliders[opening];
             LaserBlockingCollider = openingBlockingColliders[opening];
             LaserDetectionCollider = new Hitbox(2f, 2f, -1f, -1f);
 
             Depth = 50;
-
+            
             Add(new StaticMover
             {
                 SolidChecker = new Func<Solid, bool>(IsRiding),
                 JumpThruChecker = new Func<JumpThru, bool>(IsRiding),
                 OnMove = delegate (Vector2 v)
                 {
-                    foreach (var pair in reflections)
-                    {
-                        pair.Value.Position += v;
-                    }
+                    // Prevent default behavior, we handle it manually
                 },
                 OnDestroy = delegate ()
                 {
-                    foreach (var pair in reflections)
+                    foreach (var beam in createdLasers)
                     {
-                        pair.Value.RemoveSelf();
+                        beam.RemoveSelf();
                     }
+
+                    RemoveSelf();
                 }
             });
 
@@ -118,8 +119,10 @@ namespace Celeste.Mod.PandorasBox
 
                 if (newDirection != null)
                 {
-                    reflections[beam] = new Laserbeam(Position, newDirection, beam.Color, beam.TTL);
-                    level.Add(reflections[beam]);
+                    Laserbeam reflectionBeam = new Laserbeam(Position, newDirection, beam.Color, beam.TTL, this);
+                    reflections[beam] = reflectionBeam;
+                    level.Add(reflectionBeam);
+                    createdLasers.Add(reflectionBeam);
                     reflections[beam].Depth = beam.Depth + 1;
                     reflections[beam].Position += reflectionOffsets[newDirection];
                 }
@@ -142,6 +145,7 @@ namespace Celeste.Mod.PandorasBox
 
                 target.RemoveSelf();
                 reflections.Remove(beam);
+                createdLasers.Remove(beam);
             }
         }
     }

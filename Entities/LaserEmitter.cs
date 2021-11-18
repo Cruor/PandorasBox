@@ -26,6 +26,8 @@ namespace Celeste.Mod.PandorasBox
         private Color color;
         private bool inStartupAnimation;
 
+        private static Vector2 laserOffset = new Vector2(0f, 25f);
+
         public LaserEmitter(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             Add((Component)(startupSprite = new Sprite(GFX.Game, "objects/pandorasBox/laser/emitter/start")));
@@ -63,10 +65,7 @@ namespace Celeste.Mod.PandorasBox
                 JumpThruChecker = new Func<JumpThru, bool>(IsRiding),
                 OnMove = delegate (Vector2 v)
                 {
-                    if (laserbeam != null)
-                    {
-                        laserbeam.Position += v;
-                    }
+                    // Prevent default behavior, we handle it manually
                 },
                 OnDestroy = delegate ()
                 {
@@ -80,7 +79,7 @@ namespace Celeste.Mod.PandorasBox
             if (isActive() && laserbeam == null) {
                 Level level = Scene as Level;
 
-                laserbeam = new Laserbeam(Position - new Vector2(0f, 25f), direction, color, beamDuration);
+                laserbeam = new Laserbeam(Position - laserOffset, direction, color, beamDuration, this);
                 level.Add(laserbeam);
 
                 idleSprite.Play("idle", true);

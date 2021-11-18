@@ -14,11 +14,13 @@ namespace Celeste.Mod.PandorasBox
     {
         private MTexture beamTexture;
         private float length;
+        private Vector2 previousParentPosition;
 
         public Color Color;
         public string Direction;
         public float Rotation;
         public int TTL;
+        public Entity Parent;
 
         public float Length
         {
@@ -30,7 +32,7 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public Laserbeam(Vector2 position, string direction, Color color, int ttl=-1) : base(position)
+        public Laserbeam(Vector2 position, string direction, Color color, int ttl=-1, Entity parent=null) : base(position)
         {
             beamTexture = GFX.Game["objects/pandorasBox/laser/beam/beam"];
 
@@ -38,10 +40,17 @@ namespace Celeste.Mod.PandorasBox
             Direction = direction;
             TTL = ttl;
 
+            Parent = parent;
+
             Rotation = LaserHelper.DirectionRotations[direction];
             Length = 8;
 
             Depth = 100;
+
+            if (Parent != null)
+            {
+                previousParentPosition = Parent.Position;
+            }
         }
 
         private void updateCollider()
@@ -65,6 +74,12 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Update()
         {
+            if (Parent != null)
+            {
+                Position += Parent.Position - previousParentPosition;
+                previousParentPosition = Parent.Position;
+            }
+
             if (TTL == 0)
             {
                 RemoveSelf();
