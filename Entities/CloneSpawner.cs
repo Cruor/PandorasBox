@@ -240,13 +240,16 @@ namespace Celeste.Mod.PandorasBox
 
             orig(self);
 
-            var players = self.Scene.Tracker.GetEntities<Player>();
-
-            if (players.Count > 1 && visibleBeforeOrig && !self.Collidable && self.Scene.OnInterval(0.05f, getSpinnerOffset(self)))
+            if (visibleBeforeOrig && !self.Collidable && self.Scene.OnInterval(0.05f, getSpinnerOffset(self)))
             {
-                foreach (Player entity in players)
+                var players = self.Scene.Tracker.GetEntities<Player>();
+
+                if (players.Count > 1)
                 {
-                    self.Collidable = self.Collidable || (Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f);
+                    foreach (Player entity in players)
+                    {
+                        self.Collidable = self.Collidable || (Math.Abs(entity.X - self.X) < 128f && Math.Abs(entity.Y - self.Y) < 128f);
+                    }
                 }
             }
         }
