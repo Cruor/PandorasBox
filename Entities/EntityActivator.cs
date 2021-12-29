@@ -42,7 +42,7 @@ namespace Celeste.Mod.PandorasBox
         public EffectModes Mode;
         public ActivationModes ActivationMode;
 
-        public List<Type> Targets;
+        public HashSet<Type> Targets;
 
         public bool UseTracked;
 

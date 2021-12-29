@@ -20,9 +20,9 @@ namespace Celeste.Mod.PandorasBox
             return FakeAssembly.GetFakeEntryAssembly().GetType(name);
         }
 
-        public static List<Type> GetTypesFromString(string name, char sep=',')
+        public static HashSet<Type> GetTypesFromString(string name, char sep=',')
         {
-            List<Type> types = new List<Type>();
+            HashSet<Type> types = new HashSet<Type>();
 
             if (string.IsNullOrEmpty(name))
             {
@@ -37,12 +37,12 @@ namespace Celeste.Mod.PandorasBox
             return types;
         }
 
-        public static List<Entity> FindTargetEntities(Scene scene, List<Type> targets, bool useTracked)
+        public static List<Entity> FindTargetEntities(Scene scene, HashSet<Type> targets, bool useTracked)
         {
             return useTracked ? FindTargetEntitiesTracked(scene, targets) : FindTargetEntitiesUntracked(scene, targets);
         }
 
-        public static List<Entity> FindTargetEntitiesTracked(Scene scene, List<Type> targets)
+        public static List<Entity> FindTargetEntitiesTracked(Scene scene, HashSet<Type> targets)
         {
             List<Entity> entities = new List<Entity>();
 
@@ -57,7 +57,7 @@ namespace Celeste.Mod.PandorasBox
             return entities;
         }
 
-        public static List<Entity> FindTargetEntitiesUntracked(Scene scene, List<Type> targets)
+        public static List<Entity> FindTargetEntitiesUntracked(Scene scene, HashSet<Type> targets)
         {
             List<Entity> entities = scene.Entities.Where(entity => targets.Contains(entity.GetType())).ToList();
 
