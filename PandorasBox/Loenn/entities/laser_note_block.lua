@@ -1,5 +1,3 @@
--- TODO - directions dropdown
-
 local laserNoteBlock = {}
 
 local directions = {
@@ -9,6 +7,12 @@ local directions = {
 
 laserNoteBlock.name = "pandorasBox/laserNoteBlock"
 laserNoteBlock.depth = 50
+laserNoteBlock.fieldInformation = {
+    direction = {
+        options = directions,
+        editable = false
+    }
+}
 laserNoteBlock.placements = {}
 
 for _, direction in ipairs(directions) do

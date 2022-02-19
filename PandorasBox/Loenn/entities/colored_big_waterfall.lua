@@ -9,10 +9,22 @@ waterfall.fieldInformation = {
     color = {
         fieldType = "color",
         allowXNAColors = true,
+    },
+    layer = {
+        options = {
+            Foreground = "FG",
+            Background = "BG"
+        }
     }
 }
 waterfall.placements = {
-    name = "waterfall"
+    name = "waterfall",
+    data = {
+        width = 16,
+        height = 64,
+        layer = "FG",
+        color = "LightSkyBlue"
+    }
 }
 
 function waterfall.sprite(room, entity)

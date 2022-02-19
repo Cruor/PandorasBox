@@ -12,7 +12,10 @@ waterfall.fieldInformation = {
     }
 }
 waterfall.placements = {
-    name = "waterfall"
+    name = "waterfall",
+    data = {
+        color = "LightSkyBlue"
+    }
 }
 
 function waterfall.sprite(room, entity)

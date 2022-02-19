@@ -13,7 +13,7 @@ lever.placements = {
 lever.justification = {0.5, 1.0}
 
 function lever.texture(room, entity)
-    local active = lever.active
+    local active = entity.active
 
     return active and "objects/pandorasBox/lever/lever4" or "objects/pandorasBox/lever/lever0"
 end

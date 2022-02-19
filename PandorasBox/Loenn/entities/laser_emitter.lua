@@ -1,5 +1,3 @@
--- TODO - Dropdowns
-
 local laserEmitter = {}
 
 local directions = {
@@ -14,6 +12,10 @@ laserEmitter.fieldInformation = {
     color = {
         fieldType = "color",
         allowXNAColors = true,
+    },
+    direction = {
+        options = directions,
+        editable = false
     }
 }
 laserEmitter.placements = {}

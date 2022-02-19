@@ -1,8 +1,13 @@
--- TODO - Dropdowns
-
 local drawableSprite = require("structs.drawable_sprite")
 
 local shell = {}
+
+local defaultTextures = {
+    Koopa = "koopa",
+    Beetle = "beetle",
+    Spiny = "spiny",
+    ["Bowser Jr."] = "bowserjr",
+}
 
 shell.name = "pandorasBox/shell"
 shell.depth = 0
@@ -13,6 +18,9 @@ shell.fieldInformation = {
     },
     direction = {
         fieldType = "integer"
+    },
+    texture = {
+        options = defaultTextures
     }
 }
 shell.placements = {

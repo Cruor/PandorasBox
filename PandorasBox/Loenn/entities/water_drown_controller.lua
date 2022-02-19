@@ -1,10 +1,17 @@
--- TODO - Dropdowns
+local waterDrownController = {}
 
-local waterDrownSprite = {}
-
-waterDrownSprite.name = "pandorasBox/waterDrowningController"
-waterDrownSprite.depth = 0
-waterDrownSprite.placements = {
+waterDrownController.name = "pandorasBox/waterDrowningController"
+waterDrownController.depth = 0
+waterDrownController.fieldInformation = {
+    mode = {
+        options = {
+            "Swimming",
+            "Diving"
+        },
+        editable = false
+    }
+}
+waterDrownController.placements = {
     name = "controller",
     data = {
         mode = "Swimming",
@@ -12,6 +19,6 @@ waterDrownSprite.placements = {
     }
 }
 
-waterDrownSprite.texture = "objects/pandorasBox/controllerIcons/waterDrowningController"
+waterDrownController.texture = "objects/pandorasBox/controllerIcons/waterDrowningController"
 
-return waterDrownSprite
+return waterDrownController

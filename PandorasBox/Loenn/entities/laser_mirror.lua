@@ -1,5 +1,3 @@
--- TODO - Dropdowns
-
 local laserMirror = {}
 
 local openingScales = {
@@ -11,6 +9,12 @@ local openingScales = {
 
 laserMirror.name = "pandorasBox/laserMirror"
 laserMirror.depth = 50
+laserMirror.fieldInformation = {
+    opening = {
+        options = table.keys(openingScales),
+        editable = false
+    }
+}
 laserMirror.placements = {}
 
 for opening, _ in pairs(openingScales) do

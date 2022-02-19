@@ -1,4 +1,3 @@
--- TODO - Dropdowns
 -- TODO - Lines for render?
 
 local utils = require("utils")
@@ -19,7 +18,15 @@ clearPipe.fieldInformation = {
     pipeWidth = {
         fieldType = "integer",
     },
+    texture = {
+        options = {
+            Glass = "glass",
+            Green = "green"
+        }
+    }
 }
+
+
 clearPipe.placements = {
     name = "glass",
     data = {

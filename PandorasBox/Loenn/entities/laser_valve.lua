@@ -1,5 +1,3 @@
--- TODO - Dropdowns
-
 local laserValve = {}
 
 local directionRotations = {
@@ -11,6 +9,12 @@ local directionRotations = {
 
 laserValve.name = "pandorasBox/laserValve"
 laserValve.depth = 50
+laserValve.fieldInformation = {
+    direction = {
+        options = table.keys(directionRotations),
+        editable = false
+    }
+}
 laserValve.placements = {}
 
 for direction, _ in pairs(directionRotations) do

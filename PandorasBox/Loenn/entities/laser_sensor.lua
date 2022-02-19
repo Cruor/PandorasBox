@@ -1,8 +1,11 @@
--- TODO - Dropdowns
-
 local drawableSprite = require("structs.drawable_sprite")
 
 local lightSensor = {}
+
+local modes = {
+    "Continuous",
+    "HitOnce"
+}
 
 lightSensor.name = "pandorasBox/laserSensor"
 lightSensor.depth = 200
@@ -16,6 +19,10 @@ lightSensor.fieldInformation = {
     color = {
         fieldType = "color",
         allowXNAColors = true,
+    },
+    mode = {
+        options = modes,
+        editable = false
     }
 }
 lightSensor.placements = {

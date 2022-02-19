@@ -1,7 +1,6 @@
--- TODO - Dropdowns
+local celesteEnums = require("consts.celeste_enums")
 
 local resortPlatformHelper = require("helpers.resort_platforms")
-local utils = require("utils")
 
 local circularResortPlatform = {}
 
@@ -15,6 +14,9 @@ circularResortPlatform.fieldInformation = {
     lineEdgeColor = {
         fieldType = "color",
         allowXNAColors = true,
+    },
+    texture = {
+        options = celesteEnums.wood_platform_textures
     }
 }
 circularResortPlatform.nodeLimits = {1, 1}
@@ -36,7 +38,7 @@ circularResortPlatform.placements = {
 }
 
 function circularResortPlatform.sprite(room, entity)
-    return resortPlatformHelper.addPlatformSprites({}, entity, entity, texture, width)
+    return resortPlatformHelper.addPlatformSprites({}, entity, entity)
 end
 
 circularResortPlatform.selection = resortPlatformHelper.getSelection

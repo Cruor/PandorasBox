@@ -1,6 +1,10 @@
--- TODO - Dropdowns
-
 local propellerBox = {}
+
+local glidingModes = {
+    {"Always", "Always"},
+    {"After Using Charge", "AfterUse"},
+    {"Never", "Never"}
+}
 
 propellerBox.name = "pandorasBox/propellerBox"
 propellerBox.depth = 50
@@ -15,6 +19,10 @@ propellerBox.fieldInformation = {
     flashChargeColor = {
         fieldType = "color",
         allowXNAColors = true,
+    },
+    glideMode = {
+        options = glidingModes,
+        editable = false
     }
 }
 propellerBox.placements = {

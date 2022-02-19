@@ -1,11 +1,15 @@
--- TODO - Dropdowns
-
 local timefield = {}
 
 timefield.name = "pandorasBox/timefield"
 timefield.fillColor = {0.5, 1.0, 1.0, 0.4}
 timefield.borderColor = {0.5, 1.0, 1.0, 1.0}
 timefield.depth = 0
+timefield.fieldInformation = {
+    color = {
+        fieldType = "color",
+        allowXNAColors = true,
+    }
+}
 timefield.placements = {
     name = "time_field",
     data = {
