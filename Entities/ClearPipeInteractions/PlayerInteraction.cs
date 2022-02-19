@@ -21,6 +21,9 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
             base.Load();
 
             On.Celeste.Player.Added += Player_Added;
+            On.Celeste.Player.UpdateCarry += Player_UpdateCarry;
+            On.Celeste.Player.OnCollideV += Player_OnCollideV;
+            On.Celeste.Player.OnCollideH += Player_OnCollideH;
         }
 
         public override void Unload()
@@ -28,13 +31,18 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
             base.Unload();
 
             On.Celeste.Player.Added -= Player_Added;
+            On.Celeste.Player.UpdateCarry -= Player_UpdateCarry;
+            On.Celeste.Player.OnCollideV -= Player_OnCollideV;
+            On.Celeste.Player.OnCollideH -= Player_OnCollideH;
         }
 
         private static bool canPlayerDashIntoPipe(Player player, Direction pipeDirection)
         {
             bool startDash = (Input.CrouchDashPressed || Input.DashPressed) && player.CanDash;
 
-            if (startDash || player.DashAttacking)
+            // Make sure the player is actually still DashAttacking and not at the end of it
+            // Otherwise the player can enter pipes in weird ways
+            if (startDash || (player.DashAttacking && player.StateMachine.State != Player.StNormal))
             {
                 Vector2 dashDir = startDash ? Input.GetAimVector(player.Facing) : player.Speed.SafeNormalize();
 
@@ -118,7 +126,11 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
                 if (Math.Abs(player.Speed.X) > 0.707)
                 {
-                    if (interaction.CurrentClearPipe.HasPipeSolids && (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0) && Input.Grab.Check && player.StateMachine.State != Player.StRedDash)
+                    bool inputTowardsPipe = (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0);
+                    bool notRedBooster = player.StateMachine.State != Player.StRedDash;
+                    bool wallClimbable = !ClimbBlocker.Check(player.Scene, player, player.Position + Vector2.UnitX * 3f * Math.Sign(Input.MoveX));
+
+                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && notRedBooster && wallClimbable && Input.Grab.Check && notRedBooster)
                     {
                         player.Speed = Vector2.Zero;
                     }
@@ -189,6 +201,48 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
             }
 
             orig(self, scene);
+        }
+
+        private void Player_UpdateCarry(On.Celeste.Player.orig_UpdateCarry orig, Player self)
+        {
+            // Player UpdateCarry happens before the collision check with triggers and player colliders
+            // Updating the speed here makes exiting into spikes work as expected
+
+            orig(self);
+
+            MarioClearPipeInteraction interaction = self.Get<MarioClearPipeInteraction>();
+            bool inClearPipe = interaction != null && interaction.CurrentClearPipe != null;
+
+            if (inClearPipe)
+            {
+                self.Speed = interaction.DirectionVector * interaction.TravelSpeed;
+            }
+        }
+
+        private void Player_OnCollideV(On.Celeste.Player.orig_OnCollideV orig, Player self, CollisionData data)
+        {
+            // Prevent dust particles / footstep sounds
+
+            MarioClearPipeInteraction interaction = self.Get<MarioClearPipeInteraction>();
+            bool inClearPipe = interaction != null && interaction.CurrentClearPipe != null;
+
+            if (!inClearPipe)
+            {
+                orig(self, data);
+            }
+        }
+
+        private void Player_OnCollideH(On.Celeste.Player.orig_OnCollideH orig, Player self, CollisionData data)
+        {
+            // Prevent dust particles / footstep sounds
+
+            MarioClearPipeInteraction interaction = self.Get<MarioClearPipeInteraction>();
+            bool inClearPipe = interaction != null && interaction.CurrentClearPipe != null;
+
+            if (!inClearPipe)
+            {
+                orig(self, data);
+            }
         }
     }
 }

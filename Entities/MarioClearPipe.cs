@@ -259,13 +259,13 @@ namespace Celeste.Mod.PandorasBox
 
         private void ejectFromPipe(Entity entity, MarioClearPipeInteraction interaction)
         {
+            // Fix float positions, causes weird collision bugs for entities
+            entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
+
             interaction.OnPipeExit?.Invoke(entity, interaction);
             interaction.CurrentClearPipe = null;
 
             CurrentlyTransportedEntities.Remove(entity);
-
-            // Fix float positions, causes weird collision bugs for entities
-            entity.Position = new Vector2((int)Math.Round(entity.Position.X), (int)Math.Round(entity.Position.Y));
         }
 
         // TODO - Cleanup and make more generic 
