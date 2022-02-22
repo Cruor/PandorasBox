@@ -42,9 +42,9 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
             // Make sure the player is actually still DashAttacking and not at the end of it
             // Otherwise the player can enter pipes in weird ways
-            if (startDash || (player.DashAttacking && player.StateMachine.State != Player.StNormal))
+            if (startDash || player.DashAttacking)
             {
-                Vector2 dashDir = startDash ? Input.GetAimVector(player.Facing) : player.Speed.SafeNormalize();
+                Vector2 dashDir = startDash ? Input.GetAimVector(player.Facing) : player.DashDir;
 
                 // Player might have dashed into a wall, check with their aim instead
                 if (player.DashAttacking && dashDir == Vector2.Zero)
