@@ -33,7 +33,8 @@ namespace Celeste.Mod.PandorasBox
 
         private List<List<Color>> particleLayerColors;
 
-        private bool addedColors;
+        private bool addedColors = false;
+        private bool addedParticleColors = false;
 
         private static FieldInfo playerDashCooldownTimerMethod = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -44,10 +45,12 @@ namespace Celeste.Mod.PandorasBox
         private static FieldInfo dreamBlockParticles = typeof(DreamBlock).GetField("particles", BindingFlags.Instance | BindingFlags.NonPublic);
         private static FieldInfo dreamBlockPlayerHasDreamDash = typeof(DreamBlock).GetField("playerHasDreamDash", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        private Color activeBackColorDefault = (Color) dreamBlockActiveBackColor.GetValue(null);
-        private Color disabledBackColorDefault = (Color) dreamBlockDisabledBackColor.GetValue(null);
-        private Color activeLineColorDefault = (Color) dreamBlockActiveLineColor.GetValue(null);
-        private Color disabledLineColorDefault = (Color) dreamBlockDisabledLineColor.GetValue(null);
+        // Hardcode to vanilla defaults
+        // Using reflection might end up with incorrect values here with mod reloading
+        private static Color activeBackColorDefault = Color.Black;
+        private static Color disabledBackColorDefault = Calc.HexToColor("1f2e2d");
+        private static Color activeLineColorDefault = Color.White;
+        private static Color disabledLineColorDefault = Calc.HexToColor("6a8480");
 
         private static Type dreamBlockParticleType = typeof(DreamBlock).GetNestedType("DreamParticle", BindingFlags.NonPublic);
         private static FieldInfo dreamBlockParticleLayer = dreamBlockParticleType.GetField("Layer", BindingFlags.Instance | BindingFlags.Public);
@@ -84,7 +87,10 @@ namespace Celeste.Mod.PandorasBox
                 ColorHelper.GetColors(data.Attr("particleLayer2Colors", "5b6ee1,CC3B3B,7daa64"))
             };
 
-            addedColors = false;
+            Add(new TransitionListener
+            {
+                OnOutBegin = transitionOnOutBegin
+            });
         }
 
         private bool dreamDashRedirect(Player player)
@@ -129,6 +135,16 @@ namespace Celeste.Mod.PandorasBox
             }
 
             return false;
+        }
+
+        private void transitionOnOutBegin()
+        {
+            List<DreamDashController> controllers = Scene.Entities.FindAll<DreamDashController>();
+            
+            if (controllers.Count > 1)
+            {
+                addedColors = false;
+            }
         }
 
         // Do a bounce check and bounce if possible
@@ -301,6 +317,21 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
+        public void AddParticleColors(Scene scene)
+        {
+            Level level = scene as Level;
+
+            foreach (DreamBlock dreamBlock in scene.Tracker.GetEntities<DreamBlock>())
+            {
+                if (level.IsInBounds(dreamBlock))
+                {
+                    changeDreamBlockParticleColors(dreamBlock);
+                }
+            }
+
+            addedParticleColors = true;
+        }
+
         public void AddColors()
         {
             if (OverrideColors && !addedColors)
@@ -316,7 +347,7 @@ namespace Celeste.Mod.PandorasBox
 
         public void RemoveColors()
         {
-            if (OverrideColors)
+            if (OverrideColors && addedColors)
             {
                 dreamBlockActiveBackColor.SetValue(null, activeBackColorDefault);
                 dreamBlockDisabledBackColor.SetValue(null, disabledBackColorDefault);
@@ -359,13 +390,11 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Awake(Scene scene)
         {
-            if (OverrideColors)
+            if (OverrideColors && !addedParticleColors)
             {
-                foreach (DreamBlock dreamBlock in scene.Tracker.GetEntities<DreamBlock>())
-                {
-                    changeDreamBlockParticleColors(dreamBlock);
-                }
+                AddParticleColors(scene);
             }
+
             base.Awake(scene);
         }
 
@@ -414,12 +443,16 @@ namespace Celeste.Mod.PandorasBox
         {
             DreamDashController controller = self.Scene.Tracker.GetEntity<DreamDashController>();
             bool playerHasDreamdash = (bool)dreamBlockPlayerHasDreamDash.GetValue(self);
+            Level level = self.Scene as Level;
 
             orig(self);
 
             if (playerHasDreamdash)
             {
-                controller?.changeDreamBlockParticleColors(self);
+                if (level?.IsInBounds(self) ?? false)
+                {
+                    controller?.changeDreamBlockParticleColors(self);
+                }
             }
         }
 
@@ -515,7 +548,7 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Player.DreamDashBegin += Player_DreamDashBegin;
             On.Celeste.Player.DreamDashUpdate += Player_DreamDashUpdate;
             On.Celeste.Player.Update += Player_Update;
-            On.Celeste.DreamBlock.Setup += DreamBlock_Setup;
+            //On.Celeste.DreamBlock.Setup += DreamBlock_Setup;
         }
 
         public static void Unload()
@@ -524,7 +557,7 @@ namespace Celeste.Mod.PandorasBox
             On.Celeste.Player.DreamDashBegin -= Player_DreamDashBegin;
             On.Celeste.Player.DreamDashUpdate -= Player_DreamDashUpdate;
             On.Celeste.Player.Update -= Player_Update;
-            On.Celeste.DreamBlock.Setup -= DreamBlock_Setup;
+            //On.Celeste.DreamBlock.Setup -= DreamBlock_Setup;
         }
     }
 }
