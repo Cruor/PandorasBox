@@ -14,7 +14,8 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 {
     class PlayerInteraction : BaseInteraction
     {
-        private static FieldInfo playerDashCooldownTimerMethod = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo playerDashCooldownTimerField = typeof(Player).GetField("dashCooldownTimer", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static FieldInfo playerJumpGraceTimerField = typeof(Player).GetField("jumpGraceTimer", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public override void Load()
         {
@@ -102,6 +103,11 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 player.Speed = Vector2.Zero;
 
                 player.Sprite.Play("spin");
+
+                if (!player.Inventory.NoRefills)
+                {
+                    player.RefillDash();
+                }
             }
         }
 
@@ -119,7 +125,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 if (player.StateMachine.State != Player.StRedDash)
                 {
                     player.StateMachine.State = Player.StNormal;
-                    playerDashCooldownTimerMethod.SetValue(player, 0f);
+                    playerDashCooldownTimerField.SetValue(player, 0f);
                 }
 
                 player.Speed = interaction.DirectionVector * interaction.CurrentClearPipe.TransportSpeed;
@@ -127,10 +133,10 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 if (Math.Abs(player.Speed.X) > 0.707)
                 {
                     bool inputTowardsPipe = (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0);
-                    bool notRedBooster = player.StateMachine.State != Player.StRedDash;
+                    bool redBooster = player.StateMachine.State == Player.StRedDash;
                     bool wallClimbable = !ClimbBlocker.Check(player.Scene, player, player.Position + Vector2.UnitX * 3f * Math.Sign(Input.MoveX));
 
-                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && notRedBooster && wallClimbable && Input.Grab.Check && notRedBooster)
+                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && !redBooster && wallClimbable && Input.Grab.Check && !redBooster)
                     {
                         player.Speed = Vector2.Zero;
                     }
@@ -140,6 +146,10 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 {
                     player.DashDir = player.Speed.SafeNormalize();
                 }
+
+                playerJumpGraceTimerField.SetValue(player, 0.1f);
+
+                player.RefillStamina();
             }
         }
 
