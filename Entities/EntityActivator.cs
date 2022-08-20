@@ -156,7 +156,7 @@ namespace Celeste.Mod.PandorasBox
             previousCameraPosition = camera.Position;
             previousCameraZoom = camera.Zoom;
 
-            if (ActivationMode == ActivationModes.OnAwake)
+            if (ActivationMode == ActivationModes.OnAwake || ActivationMode == ActivationModes.OnCameraMoved)
             {
                 UpdateEntities();
             }
