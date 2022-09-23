@@ -38,6 +38,7 @@ namespace Celeste.Mod.PandorasBox
         private static int rayMaxLength = 128;
 
         public static Color CurrentRayTopColor = Color.LightSkyBlue * 0.6f;
+        public static bool CurrentlyUpdating;
 
         private static float cameraTop;
         private static float cameraBottom;
@@ -59,9 +60,6 @@ namespace Celeste.Mod.PandorasBox
         public static FieldInfo surfaceRayIndexField = typeof(Surface).GetField("rayStartIndex", BindingFlags.Instance | BindingFlags.NonPublic);
         public static FieldInfo surfaceTimerField = typeof(Surface).GetField("timer", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        // Surfaces created by us, used for hooks
-        private static ConditionalWeakTable<Surface, ValueHolder<Boolean>> trackedSurfaces = new ConditionalWeakTable<Surface, ValueHolder<Boolean>>();
-
         public ColoredWater(EntityData data, Vector2 offset) : base(data.Position + offset, data.Bool("hasTop", true), data.Bool("hasBottom"), data.Width, data.Height)
         {
             baseColor = ColorHelper.GetColor(data.Attr("color", "#87CEFA"));
@@ -76,18 +74,9 @@ namespace Celeste.Mod.PandorasBox
             interactionContains = (HashSet<WaterInteraction>) containsField.GetValue(this);
         }
 
-        private Surface newTrackedSurface(Vector2 position, Vector2 outwards, float width, float bodyHeight)
-        {
-            Surface surface = new Surface(position, outwards, width, bodyHeight);
-
-            trackedSurfaces.Add(surface, new ValueHolder<bool>(true));
-
-            return surface;
-        }
-
         private static bool isTrackedSurface(Surface surface)
         {
-            return trackedSurfaces.TryGetValue(surface, out ValueHolder<Boolean> value);
+            return ColoredWater.CurrentlyUpdating;
         }
 
         private void initializeSurfaces()
@@ -105,25 +94,25 @@ namespace Celeste.Mod.PandorasBox
 
             if (hasTopSurface)
             {
-                TopSurface = newTrackedSurface(Position + new Vector2(Width / 2f, 8f), new Vector2(0.0f, -1f), Width, Height);
+                TopSurface = new Surface(Position + new Vector2(Width / 2f, 8f), new Vector2(0.0f, -1f), Width, Height);
                 Surfaces.Add(TopSurface);
             }
 
             if (hasBottomSurface)
             {
-                BottomSurface = newTrackedSurface(Position + new Vector2(Width / 2f, Height - 8f), new Vector2(0.0f, 1f), Width, Height);
+                BottomSurface = new Surface(Position + new Vector2(Width / 2f, Height - 8f), new Vector2(0.0f, 1f), Width, Height);
                 Surfaces.Add(BottomSurface);
             }
 
             if (hasLeftSurface)
             {
-                LeftSurface = newTrackedSurface(Position + new Vector2(8, Height / 2), new Vector2(-1f, 0f), Height, Width);
+                LeftSurface = new Surface(Position + new Vector2(8, Height / 2), new Vector2(-1f, 0f), Height, Width);
                 Surfaces.Add(LeftSurface);
             }
 
             if (hasRightSurface)
             {
-                RightSurface = newTrackedSurface(Position + new Vector2(Width - 8, Height / 2), new Vector2(1f, 0f), Height, Width);
+                RightSurface = new Surface(Position + new Vector2(Width - 8, Height / 2), new Vector2(1f, 0f), Height, Width);
                 Surfaces.Add(RightSurface);
             }
 
@@ -156,12 +145,10 @@ namespace Celeste.Mod.PandorasBox
             changeColor(surfaceColorField, surfaceColor, origSurface);
         }
 
-        private void updateVisiblity(Level level)
+        private void updateVisiblity()
         {
-            Camera camera = level.Camera;
-
-            bool horizontalCheck = X < camera.Right + horizontalVisiblityBuffer && X + Width > camera.Left - horizontalVisiblityBuffer;
-            bool verticalCheck = Y < camera.Bottom + verticalVisiblityBuffer && Y + Height > camera.Top - verticalVisiblityBuffer;
+            bool horizontalCheck = X < cameraRight + horizontalVisiblityBuffer && X + Width > cameraLeft - horizontalVisiblityBuffer;
+            bool verticalCheck = Y < cameraBottom + verticalVisiblityBuffer && Y + Height > cameraTop - verticalVisiblityBuffer;
 
             visibleOnCamera = horizontalCheck && verticalCheck;
         }
@@ -266,12 +253,14 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Update()
         {
+
             Level level = Scene as Level;
             Color origRayTop = Water.RayTopColor;
 
             updateCamera(level.Camera);
-            updateVisiblity(level);
+            updateVisiblity();
 
+            CurrentlyUpdating = true;
             CurrentRayTopColor = rayTopColor;
 
             rippleLeftRightSurfaces();
@@ -280,6 +269,7 @@ namespace Celeste.Mod.PandorasBox
             updateSurfacePositionsAndSize();
 
             CurrentRayTopColor = origRayTop;
+            CurrentlyUpdating = false;
         }
 
         public override void Added(Scene scene)
@@ -378,7 +368,7 @@ namespace Celeste.Mod.PandorasBox
             return horizontalCheck && verticalCheck;
         }
 
-        private static float getCachedSurfaceHeight(Surface surface, float[] cache, float position)
+        private static float getCachedSurfaceHeight(Surface surface, float[] cache, float position, float timer)
         {
             int index = (int)Math.Floor(position / Surface.Resolution);
 
@@ -389,10 +379,54 @@ namespace Celeste.Mod.PandorasBox
 
             if (cache[index] == 0f)
             {
-                cache[index] = surface.GetSurfaceHeight(position);
+                cache[index] = customGetHeight(surface, position, timer);
             }
 
             return cache[index];
+        }
+
+        public static float customGetHeight(Surface surface, float position, float timer)
+        {
+            if (position < 0f || position > surface.Width)
+            {
+                return 0f;
+            }
+            float num = 0f;
+            foreach (Ripple ripple in surface.Ripples)
+            {
+                float distance = Math.Abs(ripple.Position - position);
+                float heightMultiplier = 0f;
+
+                if (distance < 12)
+                {
+                    heightMultiplier = (distance / 16f) * -1.75f + 1f;
+                }
+                else if (distance < 16)
+                {
+                    heightMultiplier = -0.75f;
+                }
+                else if (distance <= 32)
+                {
+                    heightMultiplier = (distance - 32f) / 16f * 0.75f;
+                }
+                else
+                {
+                    heightMultiplier = 0f;
+                }
+
+                num += heightMultiplier * ripple.Height * Ease.CubeIn(1f - ripple.Percent);
+            }
+            num = Calc.Clamp(num, -4f, 4f);
+            foreach (Tension tension in surface.Tensions)
+            {
+                float t = Calc.ClampedMap(Math.Abs(tension.Position - position), 0f, 24f, 1f, 0f);
+                num += Ease.CubeOut(t) * tension.Strength * 12f;
+            }
+            float val = position / surface.Width;
+            num *= Math.Min(0.5f + val * 5f, 1f);
+            num *= Math.Min(0.5f + (1f - val) * 5f, 1f);
+            num += (float)Math.Sin(timer + position * 0.1f);
+            return num + 6f;
         }
 
         private static void Surface_Update(On.Celeste.Water.Surface.orig_Update orig, Surface self)
@@ -450,13 +484,13 @@ namespace Celeste.Mod.PandorasBox
             int num4 = surfaceStartIndex;
 
             float halfWidth = self.Width / 2;
-            float surfaceHeight = getCachedSurfaceHeight(self, surfaceHeights, position);
+            float surfaceHeight = getCachedSurfaceHeight(self, surfaceHeights, position, timer);
 
             while (position < visibleSurfaceEnd)
             {
                 int num5 = position;
                 int num6 = Math.Min(position + Surface.Resolution, self.Width);
-                float surfaceHeightNext = getCachedSurfaceHeight(self, surfaceHeights, num6);
+                float surfaceHeightNext = getCachedSurfaceHeight(self, surfaceHeights, num6, timer);
 
                 Vector2 perpendicularHeight = self.Outwards * surfaceHeight;
                 Vector2 perpendicularHeightNext = self.Outwards * surfaceHeightNext;
@@ -514,28 +548,31 @@ namespace Celeste.Mod.PandorasBox
 
                 if (ray.Percent < 0.1f)
                 {
-                    scale = Calc.ClampedMap(ray.Percent, 0f, 0.1f);
+                    scale = ray.Percent * 10f;
                 }
                 else if (ray.Percent > 0.9f)
                 {
-                    scale = Calc.ClampedMap(ray.Percent, 0.9f, 1f, 1f, 0f);
+                    scale = 1f - (ray.Percent - 0.9f) * 10f;
                 }
                 float scaleFactor = Math.Min(self.BodyHeight, 0.7f * ray.Length);
                 Vector2 scaledOutwards = self.Outwards * scaleFactor;
+                Color color = ColoredWater.CurrentRayTopColor * scale;
                 float num10 = 0.3f * ray.Length;
-                Vector2 value3 = value2 + perpendicular * num8 + self.Outwards * getCachedSurfaceHeight(self, surfaceHeights, num8);
-                Vector2 value4 = value2 + perpendicular * num9 + self.Outwards * getCachedSurfaceHeight(self, surfaceHeights, num9);
+                Vector2 value3 = value2 + perpendicular * num8 + self.Outwards * getCachedSurfaceHeight(self, surfaceHeights, num8, timer);
+                Vector2 value4 = value2 + perpendicular * num9 + self.Outwards * getCachedSurfaceHeight(self, surfaceHeights, num9, timer);
                 Vector2 value5 = value2 + perpendicular * (num9 - num10) - scaledOutwards;
                 Vector2 value6 = value2 + perpendicular * (num8 - num10) - scaledOutwards;
+                Vector3 value7 = new Vector3(value4, 0f);
+                Vector3 value8 = new Vector3(value6, 0f);
                 mesh[num7].Position = new Vector3(value3, 0f);
-                mesh[num7].Color = ColoredWater.CurrentRayTopColor * scale;
-                mesh[num7 + 1].Position = new Vector3(value4, 0f);
-                mesh[num7 + 1].Color = ColoredWater.CurrentRayTopColor * scale;
-                mesh[num7 + 2].Position = new Vector3(value6, 0f);
-                mesh[num7 + 3].Position = new Vector3(value4, 0f);
-                mesh[num7 + 3].Color = ColoredWater.CurrentRayTopColor * scale;
+                mesh[num7].Color = color;
+                mesh[num7 + 1].Position = value7;
+                mesh[num7 + 1].Color = color;
+                mesh[num7 + 2].Position = value8;
+                mesh[num7 + 3].Position = value7;
+                mesh[num7 + 3].Color = color;
                 mesh[num7 + 4].Position = new Vector3(value5, 0f);
-                mesh[num7 + 5].Position = new Vector3(value6, 0f);
+                mesh[num7 + 5].Position = value8;
                 num7 += 6;
             }
         }
