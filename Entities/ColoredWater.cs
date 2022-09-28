@@ -5,7 +5,9 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using MonoMod.Cil;
+using MonoMod;
+using Mono.Cecil.Cil;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -30,6 +32,13 @@ namespace Celeste.Mod.PandorasBox
 
         public Surface LeftSurface;
         public Surface RightSurface;
+
+        private bool hasTopRays;
+        private bool hasBottomRays;
+        private bool hasLeftRays;
+        private bool hasRightRays;
+
+        public bool CanJumpOnSurface;
 
         private static int horizontalVisiblityBuffer = 40;
         private static int verticalVisiblityBuffer = 40;
@@ -70,6 +79,13 @@ namespace Celeste.Mod.PandorasBox
             hasLeftSurface = data.Bool("hasLeft");
             hasRightSurface = data.Bool("hasRight");
 
+            hasTopRays = data.Bool("hasTopRays", true);
+            hasBottomRays = data.Bool("hasBottomRays", true);
+            hasLeftRays = data.Bool("hasLeftRays", true);
+            hasRightRays = data.Bool("hasRightRays", true);
+
+            CanJumpOnSurface = data.Bool("canJumpOnSurface", true);
+
             waterFill = (Rectangle) fillField.GetValue(this);
             interactionContains = (HashSet<WaterInteraction>) containsField.GetValue(this);
         }
@@ -96,24 +112,44 @@ namespace Celeste.Mod.PandorasBox
             {
                 TopSurface = new Surface(Position + new Vector2(Width / 2f, 8f), new Vector2(0.0f, -1f), Width, Height);
                 Surfaces.Add(TopSurface);
+
+                if (!hasTopRays)
+                {
+                    TopSurface.Rays.Clear();
+                }
             }
 
             if (hasBottomSurface)
             {
                 BottomSurface = new Surface(Position + new Vector2(Width / 2f, Height - 8f), new Vector2(0.0f, 1f), Width, Height);
                 Surfaces.Add(BottomSurface);
+
+                if (!hasBottomRays)
+                {
+                    BottomSurface.Rays.Clear();
+                }
             }
 
             if (hasLeftSurface)
             {
                 LeftSurface = new Surface(Position + new Vector2(8, Height / 2), new Vector2(-1f, 0f), Height, Width);
                 Surfaces.Add(LeftSurface);
+
+                if (!hasLeftRays)
+                {
+                    LeftSurface.Rays.Clear();
+                }
             }
 
             if (hasRightSurface)
             {
                 RightSurface = new Surface(Position + new Vector2(Width - 8, Height / 2), new Vector2(1f, 0f), Height, Width);
                 Surfaces.Add(RightSurface);
+
+                if (!hasRightRays)
+                {
+                    RightSurface.Rays.Clear();
+                }
             }
 
             // Update fill rectangle
@@ -438,22 +474,8 @@ namespace Celeste.Mod.PandorasBox
                 return;
             }
 
-            bool surfaceVisible = isSurfaceSectionVisible(self, 0, self.Width, rayMaxLength);
-
-            if (!surfaceVisible)
-            {
-                return;
-            }
-
             float timer = (float) surfaceTimerField.GetValue(self);
             surfaceTimerField.SetValue(self, timer + Engine.DeltaTime);
-
-            VertexPositionColor[] mesh = (VertexPositionColor[]) surfaceMeshField.GetValue(self);
-            int fillStartIndex = (int) surfaceFillIndexField.GetValue(self);
-            int surfaceStartIndex = (int) surfaceSurfaceIndexField.GetValue(self);
-            int rayStartIndex = (int) surfaceRayIndexField.GetValue(self);
-
-            float[] surfaceHeights = new float[(int)Math.Ceiling((float)self.Width / Surface.Resolution) + 1];
 
             Vector2 perpendicular = self.Outwards.Perpendicular();
             for (int num = self.Ripples.Count - 1; num >= 0; num--)
@@ -474,6 +496,20 @@ namespace Celeste.Mod.PandorasBox
                     ripple.Percent += Engine.DeltaTime / ripple.Duration;
                 }
             }
+
+            bool surfaceVisible = isSurfaceSectionVisible(self, 0, self.Width, rayMaxLength);
+
+            if (!surfaceVisible)
+            {
+                return;
+            }
+
+            VertexPositionColor[] mesh = (VertexPositionColor[])surfaceMeshField.GetValue(self);
+            int fillStartIndex = (int)surfaceFillIndexField.GetValue(self);
+            int surfaceStartIndex = (int)surfaceSurfaceIndexField.GetValue(self);
+            int rayStartIndex = (int)surfaceRayIndexField.GetValue(self);
+
+            float[] surfaceHeights = new float[(int)Math.Ceiling((float)self.Width / Surface.Resolution) + 1];
 
             Vector2 visibilityRange = getVisibleSurfaceRange(self);
             int visibleSurfaceStart = (int)visibilityRange.X;
@@ -577,14 +613,61 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
+        private static void Player_NormalUpdate(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallOrCallvirt<Surface>("DoRipple")))
+            {
+                Logger.Log($"{PandorasBoxMod.LoggerTag}/PlayerNormalUpdate", $"Patching water surface jumping at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
+                ILLabel skipJump = cursor.DefineLabel();
+                ILLabel keepJump = cursor.DefineLabel();
+
+                cursor.GotoPrev(MoveType.After, instr => instr.MatchCallOrCallvirt<Player>("Jump"));
+                cursor.Emit(OpCodes.Br, keepJump);
+                cursor.MarkLabel(skipJump);
+                cursor.EmitDelegate<Action>(() =>
+                {
+                    // TODO: Include something here? This is when the player jumps on the surface
+                });
+                cursor.Emit(OpCodes.Pop);
+                cursor.Emit(OpCodes.Pop);
+                cursor.Emit(OpCodes.Pop);
+                cursor.MarkLabel(keepJump);
+
+                cursor.GotoPrev(MoveType.Before, instr => instr.MatchCallOrCallvirt<Player>("Jump"));
+                cursor.Emit(OpCodes.Ldloc_S, (byte)13);
+                cursor.EmitDelegate<Func<Water, bool>>((water) =>
+                {
+                    // Returns wheter we allow the jump or not
+                    ColoredWater coloredWater = (water as ColoredWater);
+
+                    if (coloredWater != null)
+                    {
+                        return coloredWater.CanJumpOnSurface;
+                    }
+                    
+                    return true;
+                });
+                cursor.Emit(OpCodes.Brfalse, skipJump);
+
+                cursor.GotoNext(MoveType.Before, instr => instr.MatchCallOrCallvirt<Surface>("DoRipple"));
+            } 
+        }
+
         public static void Load()
         {
             On.Celeste.Water.Surface.Update += Surface_Update;
+
+            IL.Celeste.Player.NormalUpdate += Player_NormalUpdate;
         }
 
         public static void Unload()
         {
             On.Celeste.Water.Surface.Update -= Surface_Update;
+
+            IL.Celeste.Player.NormalUpdate -= Player_NormalUpdate;
         }
     }
 }

@@ -38,6 +38,12 @@ entities.pandorasBox/coloredWater.attributes.description.hasTop=Determines wheth
 entities.pandorasBox/coloredWater.attributes.description.hasBottom=Determines whether or not the water has a bottom surface.
 entities.pandorasBox/coloredWater.attributes.description.hasLeft=Determines whether or not the water has a left surface.
 entities.pandorasBox/coloredWater.attributes.description.hasRight=Determines whether or not the water has a right surface.
+entities.pandorasBox/coloredWater.attributes.description.hasTopRays=Determines whether or not the water has rays on the top surface. Requires the surface to be visible.
+entities.pandorasBox/coloredWater.attributes.description.hasBottomRays=Determines whether or not the water has rays on the bottom surface. Requires the surface to be visible.
+entities.pandorasBox/coloredWater.attributes.description.hasLeftRays=Determines whether or not the water has rays on the left surface. Requires the surface to be visible.
+entities.pandorasBox/coloredWater.attributes.description.hasRightRays=Determines whether or not the water has rays on the right surface. Requires the surface to be visible.
+entities.pandorasBox/coloredWater.attributes.description.canJumpOnSurface=Determines whether or not the player can jump on the top water surface.
+
 
 # Colored Waterfall
 entities.pandorasBox/coloredWaterfall.placements.name.waterfall=Waterfall

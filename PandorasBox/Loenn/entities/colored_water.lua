@@ -13,6 +13,13 @@ end
 
 water.name = "pandorasBox/coloredWater"
 water.depth = 0
+water.fieldOrder = {
+    "x", "y", "width", "height",
+    "color",
+    "hasTop", "hasBottom", "hasLeft", "hasRight",
+    "hasTopRays", "hasBottomRays", "hasLeftRays", "hasRightRays",
+    "canJumpOnSurface"
+}
 water.fieldInformation = {
     color = {
         fieldType = "color",
@@ -24,10 +31,19 @@ water.placements = {
     data = {
         width = 8,
         height = 8,
+
         hasTop = true,
         hasBottom = false,
         hasLeft = false,
         hasRight = false,
+
+        hasTopRays = true,
+        hasBottomRays = true,
+        hasLeftRays = true,
+        hasRightRays = true,
+
+        canJumpOnSurface = true,
+
         color = "LightSkyBlue"
     }
 }
