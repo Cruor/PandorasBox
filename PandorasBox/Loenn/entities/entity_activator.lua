@@ -45,7 +45,11 @@ entityActivator.placements = {
         targets = "",
         useTracked = true,
         flag = "",
-        updateInterval = -1.0
+        updateInterval = -1.0,
+        changeCollision = true,
+        changeActive = true,
+        changeVisible = true,
+        affectComponents = false
     }
 }
 

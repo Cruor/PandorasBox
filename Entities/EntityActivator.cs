@@ -50,6 +50,12 @@ namespace Celeste.Mod.PandorasBox
 
         public float UpdateInterval;
 
+        public bool ChangeCollidable;
+        public bool ChangeActive;
+        public bool ChangeVisible;
+
+        public bool AffectComponents;
+
         private bool previousFlagValue = false;
         private bool updateFlagValues = false;
 
@@ -68,6 +74,12 @@ namespace Celeste.Mod.PandorasBox
             UseTracked = data.Bool("useTracked", true);
 
             Flag = data.Attr("flag", "");
+
+            ChangeCollidable = data.Bool("changeCollision", true);
+            ChangeActive = data.Bool("changeActive", true);
+            ChangeVisible = data.Bool("changeVisible", true);
+
+            AffectComponents = data.Bool("affectComponents", false);
 
             UpdateInterval = data.Float("updateInterval", -1f);
         }
@@ -216,9 +228,37 @@ namespace Celeste.Mod.PandorasBox
 
         public void UpdateTarget(Entity target, bool visible, bool active, bool collidable)
         {
-            target.Visible = visible;
-            target.Active = active;
-            target.Collidable = collidable;
+            if (ChangeCollidable)
+            {
+                target.Collidable = collidable;
+            }
+
+            if (ChangeVisible)
+            {
+                target.Visible = visible;
+            }
+
+            if (ChangeActive)
+            {
+                target.Active = active;
+            }
+
+            // Pointless to iterate if we aren't changing anything anyway
+            if (AffectComponents && (ChangeVisible || ChangeActive))
+            {
+                foreach (Component component in target.Components)
+                {
+                    if (ChangeVisible)
+                    {
+                        component.Visible = visible;
+                    }
+
+                    if (ChangeActive)
+                    {
+                        component.Active = active;
+                    }
+                }
+            }
         }
 
         public bool EntityInside(Entity target)
