@@ -32,7 +32,7 @@ clearPipe.placements = {
     data = {
         texture = "glass",
         surfaceSound = -1,
-        trasportSpeed = 175.0,
+        transportSpeed = 175.0,
         pipeWidth = 32
     }
 }
