@@ -9,6 +9,7 @@ using System.Reflection;
 using Celeste.Mod.Entities;
 using Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions;
 using Celeste.Mod.PandorasBox.Entities;
+using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.PandorasBox
 {
@@ -24,6 +25,8 @@ namespace Celeste.Mod.PandorasBox
         }
 
         public static HashSet<Entity> CurrentlyTransportedEntities = new HashSet<Entity>();
+        private static ConditionalWeakTable<Entity, MarioClearPipeInteraction> interactionCache = new ConditionalWeakTable<Entity, MarioClearPipeInteraction>();
+        private static List<WeakReference> knownEntities = new List<WeakReference>();
 
         public static Vector2 GetPipeExitDirectionVector(Vector2 exit, Vector2 previous)
         {
@@ -92,9 +95,35 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
+        private static MarioClearPipeInteraction updateInteractionCache(Entity entity)
+        {
+            MarioClearPipeInteraction interaction = entity.Get<MarioClearPipeInteraction>();
+
+            interactionCache.AddOrUpdate(entity, interaction);
+
+            if (interaction != null)
+            {
+                knownEntities.Add(new WeakReference(entity));
+            }
+
+            return interaction;
+        }
+
         public static MarioClearPipeInteraction GetClearPipeInteraction(Entity entity)
         {
-            return entity?.Get<MarioClearPipeInteraction>();
+            if (entity == null || entity.Scene == null)
+            {
+                return null;
+            }
+
+            if (interactionCache.TryGetValue(entity, out MarioClearPipeInteraction interaction))
+            {
+                return interaction;
+            }
+            else
+            {
+                return updateInteractionCache(entity);
+            }
         }
 
         public static bool HasClearPipeInteraction(Entity entity)
@@ -110,12 +139,22 @@ namespace Celeste.Mod.PandorasBox
                 {
                     if (baseInteraction.AddInteraction(entity))
                     {
+                        updateInteractionCache(entity);
+
                         return true;
                     }
                 }
             }
 
             return false;
+        }
+
+        public static IEnumerable<Entity> EntitiesWithInteractions()
+        {
+            // Clear dead references
+            knownEntities = knownEntities.Where(r => r.IsAlive).ToList();
+
+            return knownEntities.Select(r => r.Target).OfType<Entity>();
         }
     }
 }

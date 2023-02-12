@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.Entities;
 
-
 namespace Celeste.Mod.PandorasBox
 {
     [Tracked(false)]

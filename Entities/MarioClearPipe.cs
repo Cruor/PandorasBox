@@ -340,7 +340,7 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Update()
         {
-            foreach (Entity entity in Scene.Entities)
+            foreach (Entity entity in EntitiesWithInteractions())
             {
                 if (entity.Collider == null)
                 {
@@ -349,16 +349,12 @@ namespace Celeste.Mod.PandorasBox
 
                 if (entity.Collider.Collide(startCollider))
                 {
-                    AddClearPipeInteraction(entity);
-
                     if (CanTransportEntity(entity, startDirection)) {
                         Add(new Coroutine(pipeMovement(entity, true)));
                     }
                 }
                 else if (entity.Collider.Collide(endCollider))
                 {
-                    AddClearPipeInteraction(entity);
-
                     if (CanTransportEntity(entity, endDirection))
                     {
                         Add(new Coroutine(pipeMovement(entity, false)));
@@ -374,6 +370,11 @@ namespace Celeste.Mod.PandorasBox
             if (HasPipeSolids)
             {
                 addPipeSolids(pipeWidth);
+            }
+
+            foreach (Entity entity in Scene.Entities)
+            {
+                AddClearPipeInteraction(entity);
             }
 
             base.Awake(scene);
