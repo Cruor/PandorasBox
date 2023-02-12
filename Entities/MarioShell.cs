@@ -239,12 +239,14 @@ namespace Celeste.Mod.PandorasBox
 
             if (!Hold.IsHeld)
             {
-                Speed.Y = OnGround() && Speed.Y >= 0 ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
+                bool onGround = OnGround();
+
+                Speed.Y = onGround && Speed.Y >= 0 ? 0f : Calc.Approach(Speed.Y, 200f, 400f * Engine.DeltaTime);
 
                 MoveH(Speed.X * Engine.DeltaTime, onCollideH, null);
                 MoveV(Speed.Y * Engine.DeltaTime, onCollideV, null);
 
-                if (OnGround() && LiftSpeed == Vector2.Zero && prevLiftspeed != Vector2.Zero)
+                if (onGround && LiftSpeed == Vector2.Zero && prevLiftspeed != Vector2.Zero)
                 {
                     Speed = prevLiftspeed;
                     Speed.X = Math.Sign(Speed.X) * baseSpeed;
