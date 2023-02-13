@@ -191,6 +191,20 @@ namespace Celeste.Mod.PandorasBox
                     UpdateEntities();
                 };
             }
+
+            // Always fire update entities with OnFlagActive/OnFlagInactive in Awake
+            // Then respect the update rate afterwards
+            if (updateFlagValues)
+            {
+                if (ActivationMode == ActivationModes.OnFlagActive && previousFlagValue)
+                {
+                    UpdateEntities();
+                }
+                else if (ActivationMode == ActivationModes.OnFlagInactive && !previousFlagValue)
+                {
+                    UpdateEntities();
+                }
+            }
         }
 
         public void UpdateEntities()
