@@ -26,7 +26,7 @@ namespace Celeste.Mod.PandorasBox
 
         public static HashSet<Entity> CurrentlyTransportedEntities = new HashSet<Entity>();
         private static ConditionalWeakTable<Entity, MarioClearPipeInteraction> interactionCache = new ConditionalWeakTable<Entity, MarioClearPipeInteraction>();
-        private static List<WeakReference> knownEntities = new List<WeakReference>();
+        private static ConditionalWeakTable<EntityList, ValueHolder<bool>> allowedLists = new ConditionalWeakTable<EntityList, ValueHolder<bool>>();
 
         public static Vector2 GetPipeExitDirectionVector(Vector2 exit, Vector2 previous)
         {
@@ -101,11 +101,6 @@ namespace Celeste.Mod.PandorasBox
 
             interactionCache.AddOrUpdate(entity, interaction);
 
-            if (interaction != null)
-            {
-                knownEntities.Add(new WeakReference(entity));
-            }
-
             return interaction;
         }
 
@@ -149,12 +144,16 @@ namespace Celeste.Mod.PandorasBox
             return false;
         }
 
-        public static IEnumerable<Entity> EntitiesWithInteractions()
+        // Allow entities from this list to get the component when added to the scene
+        // This indicates that the list is in a room that uses clear pipes
+        public static void AllowComponentsForList(EntityList list)
         {
-            // Clear dead references
-            knownEntities = knownEntities.Where(r => r.IsAlive).ToList();
+            allowedLists.AddOrUpdate(list, new ValueHolder<bool>(true));
+        }
 
-            return knownEntities.Select(r => r.Target).OfType<Entity>();
+        public static bool ShouldAddComponentsForList(EntityList list)
+        {
+            return allowedLists.TryGetValue(list, out var value);
         }
     }
 }

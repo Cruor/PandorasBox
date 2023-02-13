@@ -340,8 +340,12 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Update()
         {
-            foreach (Entity entity in EntitiesWithInteractions())
+            List<Component> components = Scene.Tracker.GetComponents<MarioClearPipeInteraction>();
+
+            foreach (MarioClearPipeInteraction component in components)
             {
+                Entity entity = component.Entity;
+
                 if (entity.Collider == null)
                 {
                     continue;
@@ -377,7 +381,19 @@ namespace Celeste.Mod.PandorasBox
                 AddClearPipeInteraction(entity);
             }
 
+            AllowComponentsForList(Scene.Entities);
+
             base.Awake(scene);
+        }
+
+        private static void EntityList_Add_Entity(On.Monocle.EntityList.orig_Add_Entity orig, EntityList self, Entity entity)
+        {
+            if (ShouldAddComponentsForList(self))
+            {
+                AddClearPipeInteraction(entity);
+            }
+
+            orig(self, entity);
         }
 
         public static void Load()
@@ -387,11 +403,15 @@ namespace Celeste.Mod.PandorasBox
             InteractionRegistry.Add(new PufferInteraction());
 
             InteractionRegistry.Load();
+
+            On.Monocle.EntityList.Add_Entity += EntityList_Add_Entity;
         }
 
         public static void Unload()
         {
             InteractionRegistry.Unload();
+
+            On.Monocle.EntityList.Add_Entity -= EntityList_Add_Entity;
         }
     }
 }
