@@ -218,6 +218,7 @@ entities.pandorasBox/entityActivator.attributes.description.changeActive=Whether
 entities.pandorasBox/entityActivator.attributes.description.changeCollision=Whether the activator should enable/disable collisions.
 entities.pandorasBox/entityActivator.attributes.description.changeVisible=Whether the activator should enable/disable rendering.
 entities.pandorasBox/entityActivator.attributes.description.affectComponents=Whether the activator should also change components on the entity.\nThis if for example the displacement effect on water.
+entities.pandorasBox/entityActivator.attributes.description.cacheTargets=Whether the activator should cache its targets in awake (level load). Does not do much when using tracked entities option, but boosts performance if the entities are not tracked.
 
 # Propeller Box
 entities.pandorasBox/propellerBox.placements.name.propeller_box=Propeller Box

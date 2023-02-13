@@ -49,7 +49,8 @@ entityActivator.placements = {
         changeCollision = true,
         changeActive = true,
         changeVisible = true,
-        affectComponents = false
+        affectComponents = true,
+        cacheTargets = true
     }
 }
 

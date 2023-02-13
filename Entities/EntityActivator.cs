@@ -54,10 +54,14 @@ namespace Celeste.Mod.PandorasBox
         public bool ChangeActive;
         public bool ChangeVisible;
 
+        public bool CacheTargets;
+
         public bool AffectComponents;
 
         private bool previousFlagValue = false;
         private bool updateFlagValues = false;
+
+        private List<Entity> cachedTargets;
 
         private Vector2 previousCameraPosition;
         private float previousCameraZoom;
@@ -78,6 +82,8 @@ namespace Celeste.Mod.PandorasBox
             ChangeCollidable = data.Bool("changeCollision", true);
             ChangeActive = data.Bool("changeActive", true);
             ChangeVisible = data.Bool("changeVisible", true);
+
+            CacheTargets = data.Bool("cacheTargets", false);
 
             AffectComponents = data.Bool("affectComponents", false);
 
@@ -157,6 +163,11 @@ namespace Celeste.Mod.PandorasBox
 
         public override void Awake(Scene scene)
         {
+            if (CacheTargets)
+            {
+                UpdateTargetCache();
+            }
+
             if (!string.IsNullOrEmpty(Flag))
             {
                 previousFlagValue = SceneAs<Level>()?.Session?.GetFlag(Flag) ?? false;
@@ -216,8 +227,18 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        public List<Entity> FindTargetEntities()
+        public void UpdateTargetCache()
         {
+            cachedTargets = FindTargetEntities(true);
+        }
+
+        public List<Entity> FindTargetEntities(bool skipCache=false)
+        {
+            if (CacheTargets && !skipCache)
+            {
+                return cachedTargets;
+            }
+
             return TypeHelper.FindTargetEntities(Scene, Targets, UseTracked);
         }
 
