@@ -213,12 +213,16 @@ namespace Celeste.Mod.PandorasBox
         // Correct for exit overshooting
         private IEnumerator exitPipeMovement(Entity entity, MarioClearPipeInteraction interaction)
         {
+            if (entity == null || entity.Scene == null) {
+                yield break;
+            }
+            
             Vector2 previousPosition = entity.Position;
             Vector2 currentPosition = entity.Position;
 
-            bool colliding = entity?.CollideFirst<MarioClearPipeSolid>() != null;
+            bool colliding = entity.CollideFirst<MarioClearPipeSolid>() != null;
 
-            while (entity != null && entity.Scene != null && colliding)
+            while (colliding)
             {
                 entity.Position += interaction.DirectionVector * TransportSpeed * Engine.DeltaTime;
 
@@ -239,7 +243,7 @@ namespace Celeste.Mod.PandorasBox
             Vector2 upperValue = currentPosition;
             Vector2 lastUnblocked = entity.Position;
 
-            while (entity != null && entity.Scene != null && (lowerValue - upperValue).LengthSquared() > 0.5f)
+            while ((lowerValue - upperValue).LengthSquared() > 0.5f)
             {
                 entity.Position = Vector2.Lerp(lowerValue, upperValue, 0.5f);
 
