@@ -136,7 +136,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                     bool redBooster = player.StateMachine.State == Player.StRedDash;
                     bool wallClimbable = !ClimbBlocker.Check(player.Scene, player, player.Position + Vector2.UnitX * 3f * Math.Sign(Input.MoveX));
 
-                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && !redBooster && wallClimbable && Input.Grab.Check && !redBooster)
+                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && !redBooster && wallClimbable && Input.GrabCheck && !redBooster)
                     {
                         player.Speed = Vector2.Zero;
                     }
