@@ -268,6 +268,7 @@ namespace Celeste.Mod.PandorasBox
 
             interaction.OnPipeExit?.Invoke(entity, interaction);
             interaction.CurrentClearPipe = null;
+            interaction.Moved = 0f;
 
             CurrentlyTransportedEntities.Remove(entity);
         }
