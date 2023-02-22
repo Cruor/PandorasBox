@@ -173,8 +173,10 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 // If the player is visually ducking or pushing up against a solid
                 bool canDuckInto = player.Sprite.CurrentAnimationID == "duck" && direction == Direction.Up;
                 bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == Direction.Left || direction == Direction.Right);
+                bool holdingDown = Input.MoveY > 0;
+                bool holdingHorizontally = Input.MoveX != 0;
 
-                if (canDuckInto || canPushInto)
+                if ((canDuckInto && holdingDown) || (canPushInto && holdingHorizontally))
                 {
                     return true;
                 }
