@@ -222,8 +222,10 @@ namespace Celeste.Mod.PandorasBox
 
             bool colliding = entity.CollideFirst<MarioClearPipeSolid>() != null;
 
-            while (colliding)
+            while (colliding && !interaction.ExitEarly)
             {
+                interaction?.OnPipeUpdate(entity, interaction);
+
                 entity.Position += interaction.DirectionVector * TransportSpeed * Engine.DeltaTime;
 
                 previousPosition = currentPosition;
@@ -235,6 +237,11 @@ namespace Celeste.Mod.PandorasBox
                 {
                     yield return null;
                 }
+            }
+
+            if (interaction.ExitEarly)
+            {
+                yield break;
             }
 
             // Correct for overshooting the exit, attempt to place entity as close as possible to the pipe
@@ -323,7 +330,7 @@ namespace Celeste.Mod.PandorasBox
                 }
 
                 // Send back if it gets stuck in a solid
-                if (entity != null && entity.Scene != null && entity.CollideCheck<Solid>())
+                if (entity != null && entity.Scene != null && entity.CollideCheck<Solid>() && !interaction.ExitEarly)
                 {
                     if (canBounceBack)
                     {
@@ -333,6 +340,7 @@ namespace Celeste.Mod.PandorasBox
                     }
                     else
                     {
+                        // TODO: This should try to kill theo etc?
                         ejectFromPipe(entity, interaction);
                     }
                 }

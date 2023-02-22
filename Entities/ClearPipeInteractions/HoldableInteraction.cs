@@ -48,7 +48,7 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
         {
             Holdable holdable = entity?.Get<Holdable>();
 
-            if (holdable != null && entity.Scene != null && !holdable.IsHeld)
+            if (holdable != null && entity.Scene != null && !holdable.IsHeld && !interaction.ExitEarly)
             {
                 Vector2 speed = Vector2.Zero;
 
@@ -110,12 +110,9 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
         public static void HoldableOnPipeUpdate(Entity entity, MarioClearPipeInteraction interaction)
         {
-            Holdable holdable = entity?.Get<Holdable>();
+            Holdable holdable = entity.Get<Holdable>();
 
-            if (holdable != null && holdable.IsHeld)
-            {
-                interaction.ExitEarly = true;
-            }
+            interaction.ExitEarly = holdable?.IsHeld ?? false;
         }
 
         public override bool AddInteraction(Entity entity)
