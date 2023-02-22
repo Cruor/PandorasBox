@@ -130,17 +130,23 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
 
                 player.Speed = interaction.DirectionVector * interaction.CurrentClearPipe.TransportSpeed;
 
+                bool redBooster = player.StateMachine.State == Player.StRedDash;
+
                 if (Math.Abs(player.Speed.X) > 0.707)
                 {
                     bool inputTowardsPipe = (player.Speed.X < 0 && Input.MoveX > 0 || player.Speed.X > 0 && Input.MoveX < 0);
-                    bool redBooster = player.StateMachine.State == Player.StRedDash;
                     bool wallClimbable = !ClimbBlocker.Check(player.Scene, player, player.Position + Vector2.UnitX * 3f * Math.Sign(Input.MoveX));
 
-                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && !redBooster && wallClimbable && Input.GrabCheck && !redBooster)
+                    if (interaction.CurrentClearPipe.HasPipeSolids && inputTowardsPipe && !redBooster && wallClimbable && Input.GrabCheck)
                     {
                         player.Speed = Vector2.Zero;
                     }
                 }
+
+                if (!redBooster && Input.Jump.Pressed)
+                {
+                    player.Jump();
+                } 
 
                 if (player.StateMachine.State == Player.StRedDash)
                 {
