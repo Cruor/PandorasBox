@@ -44,7 +44,6 @@ entities.pandorasBox/coloredWater.attributes.description.hasLeftRays=Determines 
 entities.pandorasBox/coloredWater.attributes.description.hasRightRays=Determines whether or not the water has rays on the right surface. Requires the surface to be visible.
 entities.pandorasBox/coloredWater.attributes.description.canJumpOnSurface=Determines whether or not the player can jump on the top water surface.
 
-
 # Colored Waterfall
 entities.pandorasBox/coloredWaterfall.placements.name.waterfall=Waterfall
 entities.pandorasBox/coloredWaterfall.attributes.description.color=The colour of the waterfall.\nHex values can be used.
@@ -176,6 +175,12 @@ entities.pandorasBox/waterDrowningController.attributes.description.mode=How the
 # Air Bubbles
 entities.pandorasBox/airBubbles.placements.name.air_bubbles=Air Bubbles
 entities.pandorasBox/airBubbles.attributes.description.oneUse=If the air bubble should only be usable once. Resets when room is reloaded or the player dies.
+
+# Checkpoint
+entities.pandorasBox/checkpoint.placements.name.checkpoint=Checkpoint
+entities.pandorasBox/checkpoint.placements.description.spawnConfetti=Whether confetti should spawn when the checkpoint is activated.
+entities.pandorasBox/checkpoint.placements.description.theme=Name of theme, expands to the full path `/objects/pandorasBox/checkpoint/{theme}/`
+entities.pandorasBox/checkpoint.placements.description.activationSound=Sound event to play when the flag is activated.
 
 # Flag Toggle Switch
 entities.pandorasBox/flagToggleSwitch.placements.name.activate=Flag Toggle Switch (Activate)
