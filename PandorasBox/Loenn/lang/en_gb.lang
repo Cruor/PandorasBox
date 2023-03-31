@@ -236,6 +236,7 @@ entities.pandorasBox/clearPipe.attributes.description.surfaceSound=Override defa
 entities.pandorasBox/clearPipe.attributes.description.hasPipeSolids=Whether the pipe should spawn solids or not.
 entities.pandorasBox/clearPipe.attributes.description.transportSpeed=Which speed the pipe should transport entites at. Speed is pixels per second.
 entities.pandorasBox/clearPipe.attributes.description.pipeWidth=Width of the pipe. Might cause visual oddities with non multiples of 8.
+entities.pandorasBox/clearPipe.attributes.description.useLegacyMovement=Whether to use the new smooth movement or the old one.
 
 
 # -- Mod Names --

@@ -31,7 +31,6 @@ namespace Celeste.Mod.PandorasBox
         public Vector2 DirectionVector = Vector2.Zero;
 
         public bool ExitEarly = false;
-        public bool LerpPipeOffset = false;
 
         public Vector2 From = Vector2.Zero;
         public Vector2 To = Vector2.Zero;

@@ -207,7 +207,8 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
         {
             if (!HasClearPipeInteraction(self))
             {
-                MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(new Vector2(0f, 10f));
+                // TODO - Gravity helper support
+                MarioClearPipeInteraction interaction = new MarioClearPipeInteraction(new Vector2(0f, 9f));
 
                 interaction.OnPipeBlocked = PlayerOnPipeBlocked;
                 interaction.OnPipeEnter = PlayerOnPipeEnter;

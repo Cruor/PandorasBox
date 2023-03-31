@@ -50,6 +50,8 @@ namespace Celeste.Mod.PandorasBox
         private Hitbox startCollider;
         private Hitbox endCollider;
 
+        private bool legacyPipeMovementYields;
+
         private List<MarioClearPipeSolid> pipeSolids;
 
         public MarioClearPipe(EntityData data, Vector2 offset) : base(data.Position + offset)
@@ -77,6 +79,8 @@ namespace Celeste.Mod.PandorasBox
 
             startCollider = getPipeCollider(Vector2.Zero, startDirection, pipeWidth, pipeColliderWidth, pipeColliderDepth);
             endCollider = getPipeCollider(new Vector2(nodes.Last().X - nodes.First().X, nodes.Last().Y - nodes.First().Y), endDirection, pipeWidth, pipeColliderWidth, pipeColliderDepth);
+
+            legacyPipeMovementYields = data.Bool("useLegacyMovement", true);
 
             Collider = new ColliderList(startCollider, endCollider);
 
@@ -181,18 +185,28 @@ namespace Celeste.Mod.PandorasBox
             }
         }
 
-        private IEnumerator moveBetweenNodes(Entity entity, MarioClearPipeInteraction interaction, Vector2 from, Vector2 to, float? travelSpeed=null, bool? lerpPipeOffset=null)
+        private IEnumerator moveBetweenNodes(Entity entity, MarioClearPipeInteraction interaction, Vector2 from, Vector2 to, float? travelSpeed=null, bool firstEntry=false, bool exiting=false)
         {
-            interaction.Distance = (from - to).Length();
-
+            // Directions should not be affected by offset
             interaction.DirectionVector = GetPipeExitDirectionVector(to, from);
             interaction.Direction = GetPipeExitDirection(to, from);
 
             interaction.From = from;
             interaction.To = to;
 
-            interaction.TravelSpeed = travelSpeed != null ? travelSpeed.Value : interaction.TravelSpeed;
-            interaction.LerpPipeOffset = lerpPipeOffset != null ? lerpPipeOffset.Value : interaction.LerpPipeOffset;
+            if (!exiting)
+            {
+                interaction.To += interaction.PipeRenderOffset;
+            }
+
+            if (!firstEntry)
+            {
+                interaction.From += interaction.PipeRenderOffset;
+            }
+
+            // Travel distance should be the actual distance the entity has to travel
+            interaction.Distance = (from - to).Length();
+            interaction.TravelSpeed = travelSpeed != null ? travelSpeed.Value : TransportSpeed;
 
             while (entity != null && interaction.Moved <= interaction.Distance && interaction.Distance != 0f && !interaction.ExitEarly)
             {
@@ -200,11 +214,18 @@ namespace Celeste.Mod.PandorasBox
 
                 float lerpValue = interaction.Moved / interaction.Distance;
 
-                entity.Position = Vector2.Lerp(from, to, lerpValue) + (interaction.LerpPipeOffset ? Vector2.Lerp(Vector2.Zero, interaction.PipeRenderOffset, lerpValue) : interaction.PipeRenderOffset);
+                entity.Position = Vector2.Lerp(interaction.From, interaction.To, lerpValue);
                 interaction.Moved += interaction.TravelSpeed * Engine.DeltaTime;
 
-                yield return null;
+                // Only yield if we are still in the same segment
+                if (interaction.Moved <= interaction.Distance || legacyPipeMovementYields)
+                {
+                    yield return null;
+                }
             }
+
+            // Prevent oddities with overshooting
+            entity.Position = interaction.To;
 
             interaction.Moved -= interaction.Distance;
         }
@@ -306,14 +327,34 @@ namespace Celeste.Mod.PandorasBox
                 }
                 else
                 {
+                    bool firstEntry = forcedStartPosition == null;
+
                     // Gracefully attempt to move to the first node
-                    yield return moveBetweenNodes(entity, interaction, entity.Position, nodes[startIndex], TransportSpeed * transportSpeedEnterMultiplier, true);
+                    IEnumerator enumerator = moveBetweenNodes(entity, interaction, entity.Position, nodes[startIndex], TransportSpeed * transportSpeedEnterMultiplier, firstEntry);
+
+                    if (legacyPipeMovementYields)
+                    {
+                        yield return enumerator;
+                    }
+                    else
+                    {
+                        while (enumerator.MoveNext()) { yield return null; }
+                    }
                 }
 
                 // Follow the nodes
                 for (int i = startIndex; i != lastIndex && !interaction.ExitEarly; i += direction)
                 {
-                    yield return moveBetweenNodes(entity, interaction, nodes[i], nodes[i + direction], TransportSpeed, false);
+                    IEnumerator enumerator = moveBetweenNodes(entity, interaction, nodes[i], nodes[i + direction]);
+
+                    if (legacyPipeMovementYields)
+                    {
+                        yield return enumerator;
+                    }
+                    else
+                    {
+                        while (enumerator.MoveNext()) { yield return null; }
+                    }
                 }
 
                 if (interaction.ExitEarly)
@@ -326,7 +367,16 @@ namespace Celeste.Mod.PandorasBox
                 // Check if we can exit the pipe
                 if (CanExitPipe(entity, interaction.DirectionVector, TransportSpeed))
                 {
-                    yield return exitPipeMovement(entity, interaction);
+                    IEnumerator enumerator = exitPipeMovement(entity, interaction);
+
+                    if (legacyPipeMovementYields)
+                    {
+                        yield return enumerator;
+                    }
+                    else
+                    {
+                        while (enumerator.MoveNext()) { yield return null; }
+                    }
                 }
 
                 // Send back if it gets stuck in a solid
@@ -336,7 +386,16 @@ namespace Celeste.Mod.PandorasBox
                     {
                         entity.Position = nodes[lastIndex] + interaction.PipeRenderOffset;
 
-                        yield return pipeMovement(entity, !fromStart, false, entity.Position);
+                        IEnumerator enumerator = pipeMovement(entity, !fromStart, false, entity.Position);
+
+                        if (legacyPipeMovementYields)
+                        {
+                            yield return enumerator;
+                        }
+                        else
+                        {
+                            while (enumerator.MoveNext()) { yield return null; }
+                        }
                     }
                     else
                     {
