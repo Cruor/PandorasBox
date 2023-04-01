@@ -15,17 +15,22 @@ namespace Celeste.Mod.PandorasBox
         private string activationSound;
 
         private Sprite sprite;
-        private Vector2 respawnPoint;
 
         public bool Activated;
+
+        public Collider ActivationCollider;
 
         public MarioCheckpoint(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
             spawnConfetti = data.Bool("spawnConfetti", true);
             theme = data.Attr("theme", "flag");
             activationSound = data.Attr("activationSound", "event:/game/07_summit/checkpoint_confetti");
+            AllowPushing = data.Bool("moveable", true);
 
-            Collider = new Hitbox(32f, 32f, -16f, -24f);
+            float width = data.Float("activationWidth", 16f);
+            float height = data.Float("activationHeight", 16f);
+
+            Collider = new Hitbox(width, height, -(width / 2), -height);
 
             Add(sprite = new Sprite(GFX.Game, $"objects/pandorasBox/checkpoint/{theme}/"));
 
@@ -52,13 +57,19 @@ namespace Celeste.Mod.PandorasBox
 
         public void ActivateCheckpoint(bool fromSpawn=false)
         {
+            Level level = base.Scene as Level;
+
             if (Activated)
             {
                 return;
             }
 
-            Level level = base.Scene as Level;
             Activated = true;
+
+            if (level == null)
+            {
+                return;
+            }
 
             sprite.Play(fromSpawn ? "active_idle" : "activating");
 
@@ -77,7 +88,7 @@ namespace Celeste.Mod.PandorasBox
                 }
             }
 
-            level.Session.RespawnPoint = respawnPoint;
+            level.Session.RespawnPoint = level.GetSpawnPoint(Position);
             level.Session.UpdateLevelStartDashes();
             level.Session.HitCheckpoint = true;
 
@@ -94,23 +105,17 @@ namespace Celeste.Mod.PandorasBox
         {
             base.Awake(scene);
 
-            if (!Activated && CollideCheck<Player>())
-            {
-                Level level = base.Scene as Level;
+            Level level = scene as Level;
 
-                ActivateCheckpoint(true);
+            if (level == null) {
+                return;
             }
-        }
 
-        public override void Added(Scene scene)
-        {
-            base.Added(scene);
+            bool sameRespawn = level.Session.RespawnPoint == level.GetSpawnPoint(Position);
 
-            Level level = SceneAs<Level>();
-
-            if (level != null)
+            if (!Activated && (CollideCheck<Player>() || sameRespawn))
             {
-                respawnPoint = level.GetSpawnPoint(Position);
+                ActivateCheckpoint(true);
             }
         }
 

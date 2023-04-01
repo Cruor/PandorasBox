@@ -178,9 +178,12 @@ entities.pandorasBox/airBubbles.attributes.description.oneUse=If the air bubble 
 
 # Checkpoint
 entities.pandorasBox/checkpoint.placements.name.checkpoint=Checkpoint
-entities.pandorasBox/checkpoint.placements.description.spawnConfetti=Whether confetti should spawn when the checkpoint is activated.
-entities.pandorasBox/checkpoint.placements.description.theme=Name of theme, expands to the full path `/objects/pandorasBox/checkpoint/{theme}/`
-entities.pandorasBox/checkpoint.placements.description.activationSound=Sound event to play when the flag is activated.
+entities.pandorasBox/checkpoint.attributes.description.spawnConfetti=Whether confetti should spawn when the checkpoint is activated.
+entities.pandorasBox/checkpoint.attributes.description.theme=Name of theme, expands to the full path `/objects/pandorasBox/checkpoint/{theme}/`
+entities.pandorasBox/checkpoint.attributes.description.activationSound=Sound event to play when the flag is activated.
+entities.pandorasBox/checkpoint.attributes.description.moveable=Whether the flag should be movable. For example falling down with falling blocks.
+entities.pandorasBox/checkpoint.attributes.description.activationWidth=The width the flag can be activated in. Also used for movement collision checking if that is enabled.
+entities.pandorasBox/checkpoint.attributes.description.activationHeight=The height the flag can be activated in. Also used for movement collision checking if that is enabled.
 
 # Flag Toggle Switch
 entities.pandorasBox/flagToggleSwitch.placements.name.activate=Flag Toggle Switch (Activate)
