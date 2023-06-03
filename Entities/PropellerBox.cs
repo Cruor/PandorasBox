@@ -442,7 +442,7 @@ namespace Celeste.Mod.PandorasBox
             // Make sure we are ready to boost
             bool pickupAnimation = hold.Holder.Sprite.CurrentAnimationID == "pickup";
 
-            if (Input.Dash.Pressed && !pickupAnimation && Charges > 0)
+            if ((Input.Dash.Pressed || Input.CrouchDash.Pressed) && !pickupAnimation && Charges > 0)
             {
                 useCharge(hold);
             }
@@ -489,6 +489,12 @@ namespace Celeste.Mod.PandorasBox
             if (player.Speed.Y > BoostLaunchThreshold)
             {
                 player.Speed.Y = BoostLaunchSpeed;
+                
+                if (player.StateMachine.State == Player.StPickup)
+                {
+                    player.StateMachine.State = Player.StNormal;
+                }
+
                 HasBoosted = true;
                 boostDuration = 1.2f;
                 
