@@ -175,8 +175,9 @@ namespace Celeste.Mod.PandorasBox.Entities.ClearPipeInteractions
                 bool canPushInto = player.Sprite.CurrentAnimationID == "push" && (direction == Direction.Left || direction == Direction.Right);
                 bool holdingDown = Input.MoveY > 0;
                 bool holdingHorizontally = Input.MoveX != 0;
+                bool dashAttacking = player.DashAttacking;
 
-                if ((canDuckInto && holdingDown) || (canPushInto && holdingHorizontally))
+                if ((canDuckInto && holdingDown && !dashAttacking) || (canPushInto && holdingHorizontally && !dashAttacking))
                 {
                     return true;
                 }
