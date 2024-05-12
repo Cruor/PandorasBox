@@ -129,10 +129,45 @@ namespace Celeste.Mod.PandorasBox
             return res;
         }
 
+        private string getPoemSoundPrefix(string soundId)
+        {
+            // Based on Everest implementation
+            if (string.IsNullOrEmpty(soundId))
+            {
+                soundId = "csides";
+            }
+
+            string prefix;
+            if (soundId.StartsWith("event:/"))
+            {
+                // sound ID is a FMOD event, take it as is.
+                prefix = soundId;
+            }
+            else if (soundId == "variants")
+            {
+                // sound ID is "variants", this is a special case since it is in the new_content bank.
+                prefix = "event:/new_content/ui/postcard_variants";
+            }
+            else
+            {
+                // if a number, use event:/ui/main/postcard_ch{number}
+                // if not, use event:/ui/main/postcard_{text}
+                prefix = "event:/ui/main/postcard_";
+
+                if (int.TryParse(soundId, out _))
+                {
+                    prefix += "ch";
+                }
+
+                prefix += soundId;
+            }
+
+            return prefix;
+        }
+
         private IEnumerator doomTheWorld(Player player)
         {
             Level level = Scene as Level;
-
 
             while (boxOpen.CurrentAnimationFrame != boxOpen.CurrentAnimationTotalFrames - 1)
             {
@@ -158,24 +193,33 @@ namespace Celeste.Mod.PandorasBox
 
                 yield return 0.2f;
             }
-            
-
+         
             ruiningTheWorld = false;
 
             if (completeChapter)
             {
-                level.CompleteArea(true, false);
+                level.TimerStopped = true;
+                level.RegisterAreaComplete();
             }
+
+            var areaData = AreaData.Get(level);
+            string postcardSoundId = areaData?.Meta?.PostcardSoundID;
+            string soundPrefix = getPoemSoundPrefix(postcardSoundId);
+
+            Postcard postcard;
 
             if (string.IsNullOrEmpty(dialogId))
             {
                 List<string> options = getDialogOptions();
-                Engine.Scene = new PreviewPostcard(new Postcard(Dialog.Get(options[Calc.Random.Next(options.Count)]), 1));
+                string dialogId = options[Calc.Random.Next(options.Count)];
+                postcard = new Postcard(Dialog.Get(dialogId), soundPrefix + "_in", soundPrefix + "_out");
             }
             else
             {
-                Engine.Scene = new PreviewPostcard(new Postcard(Dialog.Get(dialogId), 1));
+                postcard = new Postcard(Dialog.Get(dialogId), soundPrefix + "_in", soundPrefix + "_out");
             }
+
+            Engine.Scene = new PandorasBoxPostcard(postcard, Scene, completeChapter);
         }
     }
 }
