@@ -58,7 +58,7 @@ namespace Celeste.Mod.PandorasBox
                 rotationPercent = Calc.Percent(angleRadians, 3.14159274f, -3.14159274f);
 
                 length = (this.Position - startCenter).Length();
-                Position = startCenter + Calc.AngleToVector(angleRadians, length);
+                MoveTo(startCenter + Calc.AngleToVector(angleRadians, length));
             }
             else
             {
@@ -68,7 +68,7 @@ namespace Celeste.Mod.PandorasBox
                 rotationPercent = Calc.Percent(num, 4.712389f, 3.1415925f);
 
                 length = (this.Position - startCenter).Length();
-                Position = startCenter + Calc.AngleToVector(num, length);
+                MoveTo(startCenter + Calc.AngleToVector(num, length));
             }
 
 
