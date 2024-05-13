@@ -169,6 +169,14 @@ namespace Celeste.Mod.PandorasBox
         {
             Level level = Scene as Level;
 
+            level.PauseLock = true;
+
+            if (completeChapter)
+            {
+                level.TimerStopped = true;
+                level.RegisterAreaComplete();
+            }
+
             while (boxOpen.CurrentAnimationFrame != boxOpen.CurrentAnimationTotalFrames - 1)
             {
                 yield return 0.25f;
@@ -185,7 +193,7 @@ namespace Celeste.Mod.PandorasBox
 
                 foreach (Entity target in targets)
                 {
-                    if (target != player && target != level.SolidTiles && target != level.BgTiles && target != this && target != tileGlitcher)
+                    if (target != player && target != level.SolidTiles && target != level.BgTiles && target != this && target != tileGlitcher && !(target is IStrawberry))
                     {
                         target.RemoveSelf();
                     }
@@ -195,12 +203,6 @@ namespace Celeste.Mod.PandorasBox
             }
          
             ruiningTheWorld = false;
-
-            if (completeChapter)
-            {
-                level.TimerStopped = true;
-                level.RegisterAreaComplete();
-            }
 
             var areaData = AreaData.Get(level);
             string postcardSoundId = areaData?.Meta?.PostcardSoundID;
